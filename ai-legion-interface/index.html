@@ -1,0 +1,2772 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>硅基公司 - 儿童零食产品开发AI军团</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <!-- CryptoJS for AWS V4 Signature -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10B981', // 健康绿色
+                        secondary: '#8B5CF6', // 紫色 - Luna
+                        tertiary: '#3B82F6', // 蓝色 - Milo
+                        accent: '#EC4899', // 粉色 - Zoe
+                        warning: '#F59E0B', // 橙色 - Kai
+                        'recipe-dev': '#10B981', // 绿色 - 配方研发
+                        'taste-test': '#EF4444', // 红色 - 口感测试
+                        'packaging-design': '#F59E0B', // 黄色 - 包装设计
+                        'market-research': '#14B8A6', // 青色 - 市场调研
+                        'brand-strategy': '#D946EF', // 洋红色 - 品牌策划
+                        'channel-promotion': '#6366F1', // 靛蓝色 - 渠道推广
+                        'food-safety': '#22C55E', // 绿色 - 食品安全合规
+                        'label-compliance': '#FACC15', // 黄色 - 标签合规
+                        'quality-control': '#EF4444', // 红色 - 质量检测
+                        'general': '#6B7280', // 灰色 - 通用
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .transition-all-300 {
+                transition: all 300ms ease-in-out;
+            }
+            .agent-node {
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .agent-node:hover {
+                transform: scale(1.05);
+            }
+            .agent-connection {
+                stroke-dasharray: 5;
+                animation: dash 30s linear infinite;
+            }
+            @keyframes dash {
+                to {
+                    stroke-dashoffset: 1000;
+                }
+            }
+            .message-bubble {
+                position: relative;
+                border-radius: 1rem;
+            }
+            .message-bubble::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                width: 0;
+                height: 0;
+                border: 10px solid transparent;
+            }
+            .message-bubble.user::after {
+                right: -20px;
+                border-bottom-color: #E5E7EB;
+                border-right: 0;
+            }
+            .message-bubble.ai::after {
+                left: -20px;
+                border-bottom-color: #DBEAFE;
+                border-left: 0;
+            }
+            .typing-indicator {
+                display: inline-flex;
+                align-items: center;
+            }
+            .typing-indicator span {
+                height: 8px;
+                width: 8px;
+                margin: 0 1px;
+                background-color: #3B82F6;
+                border-radius: 50%;
+                display: inline-block;
+                animation: bounce 1.4s infinite ease-in-out both;
+            }
+            .typing-indicator span:nth-child(1) {
+                animation-delay: -0.32s;
+            }
+            .typing-indicator span:nth-child(2) {
+                animation-delay: -0.16s;
+            }
+            @keyframes bounce {
+                0%, 80%, 100% { transform: scale(0); }
+                40% { transform: scale(1); }
+            }
+            .task-timeline {
+                position: relative;
+            }
+            .task-timeline::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 15px;
+                height: 100%;
+                width: 2px;
+                background-color: #E5E7EB;
+            }
+            .task-item {
+                position: relative;
+                padding-left: 40px;
+                margin-bottom: 1.5rem;
+            }
+            .task-item::before {
+                content: '';
+                position: absolute;
+                left: 8px;
+                top: 6px;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                border: 2px solid #E5E7EB;
+                background-color: white;
+            }
+            .task-item.completed::before {
+                background-color: #10B981;
+                border-color: #10B981;
+            }
+            .task-item.in-progress::before {
+                background-color: #3B82F6;
+                border-color: #3B82F6;
+            }
+            .task-item.pending::before {
+                background-color: #F59E0B;
+                border-color: #F59E0B;
+            }
+            .toggle-bg {
+                transition: background-color 0.2s;
+            }
+            .toggle-bg.bg-primary {
+                background-color: #10B981;
+            }
+            .toggle-bg:not(.bg-primary) {
+                background-color: #D1D5DB;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                    <i class="fa fa-leaf text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800">硅基公司</h1>
+                    <p class="text-xs text-gray-500">儿童零食产品开发AI军团</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="group-chat-btn" class="px-4 py-2 bg-gradient-to-r from-primary to-teal-400 text-white rounded-md hover:opacity-90 transition-all-300 flex items-center">
+                    <i class="fa fa-users mr-2"></i> AI群聊
+                </button>
+                <button class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all-300 flex items-center">
+                    <i class="fa fa-plus mr-2"></i> 新建项目
+                </button>
+                <div class="relative">
+                    <button class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-all-300">
+                        <i class="fa fa-user text-gray-600"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-12 gap-6">
+            <!-- 左侧：AI军团架构 -->
+            <div class="col-span-12 lg:col-span-3 bg-white rounded-lg shadow-card p-4">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fa fa-sitemap mr-2 text-primary"></i> AI军团架构
+                </h2>
+                <div class="space-y-4" id="agent-hierarchy">
+                    <!-- 中枢首席执行官 -->
+                    <div class="agent-group">
+                        <div class="agent-node flex items-center p-3 bg-secondary/10 rounded-lg border-l-4 border-secondary cursor-pointer" data-agent-id="luna">
+                            <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a526161dc3a44703be086d833b7079d0~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=7DqXvLEzPGC9u5LCSArcHAgAcRU%3D" alt="Luna" class="w-10 h-10 rounded-full object-cover">
+                            <div class="ml-3">
+                                <h3 class="font-medium text-gray-800">Luna</h3>
+                                <p class="text-xs text-gray-500">中枢首席执行官</p>
+                            </div>
+                            <i class="fa fa-chevron-down ml-auto text-gray-400 transition-transform"></i>
+                        </div>
+                        <div class="agent-children pl-4 mt-2 space-y-2">
+                            <!-- 产品研发总监 -->
+                            <div class="agent-node flex items-center p-3 bg-tertiary/10 rounded-lg border-l-4 border-tertiary cursor-pointer" data-agent-id="milo">
+                                <img src="https://p9-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/4abc1fe44c4f4cd38f4e0eca8a3f3f6a~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=Vo1nPAAhUrQJ%2BRJlCY0H1t2HtFU%3D" alt="Milo" class="w-8 h-8 rounded-full object-cover">
+                                <div class="ml-2">
+                                    <h3 class="font-medium text-gray-800">Milo</h3>
+                                    <p class="text-xs text-gray-500">产品研发总监</p>
+                                </div>
+                                <i class="fa fa-chevron-down ml-auto text-gray-400 transition-transform"></i>
+                            </div>
+                            <div class="agent-children pl-4 mt-2 space-y-2">
+                                <!-- 配方研发 -->
+                                <div class="agent-node flex items-center p-2 bg-recipe-dev/10 rounded-lg border-l-4 border-recipe-dev cursor-pointer" data-agent-id="recipe-dev">
+                                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/86fef240e04c4c2fbcefaae21b4a5b7b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576208&x-signature=x3ecQxXpq0mBvsa5%2BaWotnaN%2Bww%3D" alt="配方研发" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="ml-2">
+                                        <h3 class="font-medium text-gray-800 text-sm">配方研发</h3>
+                                    </div>
+                                </div>
+                                <!-- 口感测试 -->
+                                <div class="agent-node flex items-center p-2 bg-taste-test/10 rounded-lg border-l-4 border-taste-test cursor-pointer" data-agent-id="taste-test">
+                                    <img src="https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/d3dcdb8a82e546a6a66c52e5e04a35ae~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576202&x-signature=eRWbRvB2%2FnrYhhNFxeDdg%2BOV8Tw%3D" alt="口感测试" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="ml-2">
+                                        <h3 class="font-medium text-gray-800 text-sm">口感测试</h3>
+                                    </div>
+                                </div>
+                                <!-- 包装设计 -->
+                                <div class="agent-node flex items-center p-2 bg-packaging-design/10 rounded-lg border-l-4 border-packaging-design cursor-pointer" data-agent-id="packaging-design">
+                                    <img src="https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/f7b9ac89656045a587079bbaec6c837b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576203&x-signature=a2nCHV%2FEJSk%2FN44Uqh9oa28ezYs%3D" alt="包装设计" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="ml-2">
+                                        <h3 class="font-medium text-gray-800 text-sm">包装设计</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 市场运营总监 -->
+                            <div class="agent-node flex items-center p-3 bg-accent/10 rounded-lg border-l-4 border-accent cursor-pointer" data-agent-id="zoe">
+                                <img src="https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1e87337a26124a3aa7d62b81c5b55d9a~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=VN2RSLIKq695LdGg8%2BwvZMXIDkw%3D" alt="Zoe" class="w-8 h-8 rounded-full object-cover">
+                                <div class="ml-2">
+                                    <h3 class="font-medium text-gray-800">Zoe</h3>
+                                    <p class="text-xs text-gray-500">市场运营总监</p>
+                                </div>
+                                <i class="fa fa-chevron-down ml-auto text-gray-400 transition-transform"></i>
+                            </div>
+                            <div class="agent-children pl-4 mt-2 space-y-2">
+                                <!-- 市场调研 -->
+                                <div class="agent-node flex items-center p-2 bg-market-research/10 rounded-lg border-l-4 border-market-research cursor-pointer" data-agent-id="market-research">
+                                    <img src="https://p6-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8b95cec4fdac438391cba1551e259129~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576227&x-signature=41fswaEucmU%2Fstnj5Ot4oPV5Log%3D" alt="市场调研" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="ml-2">
+                                        <h3 class="font-medium text-gray-800 text-sm">市场调研</h3>
+                                    </div>
+                                </div>
+                                <!-- 品牌策划 -->
+                                <div class="agent-node flex items-center p-2 bg-brand-strategy/10 rounded-lg border-l-4 border-brand-strategy cursor-pointer" data-agent-id="brand-strategy">
+                                    <img src="https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/bc0cfe4d702b42b887ba7fb673d1bcce~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576232&x-signature=3D%2F%2FbjaS8%2BDsF6HXz2cyu0GGCaY%3D" alt="品牌策划" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="ml-2">
+                                        <h3 class="font-medium text-gray-800 text-sm">品牌策划</h3>
+                                    </div>
+                                </div>
+                                <!-- 渠道推广 -->
+                                <div class="agent-node flex items-center p-2 bg-channel-promotion/10 rounded-lg border-l-4 border-channel-promotion cursor-pointer" data-agent-id="channel-promotion">
+                                    <img src="https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/76ea77244bff43c6856bbef4f8276a1e~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576227&x-signature=yZc8uTtEKLCWAJn5sMXfM7DskNc%3D" alt="渠道推广" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="ml-2">
+                                        <h3 class="font-medium text-gray-800 text-sm">渠道推广</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 合规质量总监 -->
+                            <div class="agent-node flex items-center p-3 bg-warning/10 rounded-lg border-l-4 border-warning cursor-pointer" data-agent-id="kai">
+                                <img src="https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8d14fe5ccd7c4ccb913e6de8ea4670fe~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=I6ooq1f90FoKPG4GyfO1OWChp2U%3D" alt="Kai" class="w-8 h-8 rounded-full object-cover">
+                                <div class="ml-2">
+                                    <h3 class="font-medium text-gray-800">Kai</h3>
+                                    <p class="text-xs text-gray-500">合规质量总监</p>
+                                </div>
+                                <i class="fa fa-chevron-down ml-auto text-gray-400 transition-transform"></i>
+                            </div>
+                            <div class="agent-children pl-4 mt-2 space-y-2">
+                                <!-- 食品安全合规 -->
+                                <div class="agent-node flex items-center p-2 bg-food-safety/10 rounded-lg border-l-4 border-food-safety cursor-pointer" data-agent-id="food-safety">
+                                    <img src="https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1b42a292eee04ab89870752fff086800~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576251&x-signature=PKCAbC308FokWfzWSOg0ngem%2BBs%3D" alt="食品安全合规" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="ml-2">
+                                        <h3 class="font-medium text-gray-800 text-sm">食品安全合规</h3>
+                                    </div>
+                                </div>
+                                <!-- 标签合规 -->
+                                <div class="agent-node flex items-center p-2 bg-label-compliance/10 rounded-lg border-l-4 border-label-compliance cursor-pointer" data-agent-id="label-compliance">
+                                    <img src="https://p11-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1380f8e7498849e3a517e067f413fa42~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576252&x-signature=rfTwAriWV34RshHcYbMhRSCnZ40%3D" alt="标签合规" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="ml-2">
+                                        <h3 class="font-medium text-gray-800 text-sm">标签合规</h3>
+                                    </div>
+                                </div>
+                                <!-- 质量检测 -->
+                                <div class="agent-node flex items-center p-2 bg-quality-control/10 rounded-lg border-l-4 border-quality-control cursor-pointer" data-agent-id="quality-control">
+                                    <img src="https://p9-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1bcb4496e42c44ebb12ae579db1e1fc9~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576251&x-signature=%2F99TLOjvcBEAf4yqEycwBH0EspU%3D" alt="质量检测" class="w-6 h-6 rounded-full object-cover">
+                                    <div class="ml-2">
+                                        <h3 class="font-medium text-gray-800 text-sm">质量检测</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 中间：对话区域 -->
+            <div class="col-span-12 lg:col-span-6 bg-white rounded-lg shadow-card flex flex-col">
+                <div class="p-4 border-b border-gray-100">
+                    <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                        <i class="fa fa-comments mr-2 text-primary"></i> 与AI军团对话
+                    </h2>
+                </div>
+                <div class="flex-1 p-4 overflow-y-auto" id="chat-messages">
+                    <!-- 欢迎消息 -->
+                    <div class="flex mb-4">
+                        <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a526161dc3a44703be086d833b7079d0~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=7DqXvLEzPGC9u5LCSArcHAgAcRU%3D" alt="Luna" class="w-8 h-8 rounded-full object-cover">
+                        <div class="ml-2">
+                            <div class="flex items-center">
+                                <span class="font-medium text-gray-800">Luna</span>
+                                <span class="text-xs text-gray-500 ml-2">中枢首席执行官</span>
+                            </div>
+                            <div class="message-bubble ai bg-blue-50 p-3 max-w-md mt-1">
+                                <p class="text-gray-700">您好！我是Luna，硅基公司的中枢首席执行官。我们的AI军团已准备好协助您开发健康、安全、趣味的儿童零食产品。请告诉我您的需求，我将协调团队为您提供专业支持。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 border-t border-gray-100">
+                    <div class="flex">
+                        <input type="text" id="message-input" class="flex-1 border border-gray-300 rounded-l-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="输入您的需求...">
+                        <button id="send-button" class="bg-primary text-white px-4 py-2 rounded-r-md hover:bg-primary/90 transition-all-300">
+                            <i class="fa fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：任务流程 -->
+            <div class="col-span-12 lg:col-span-3 bg-white rounded-lg shadow-card p-4">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fa fa-tasks mr-2 text-primary"></i> 任务流程
+                </h2>
+                <div class="task-timeline">
+                    <!-- 任务1：需求分析 -->
+                    <div class="task-item completed">
+                        <div class="bg-green-50 p-3 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="font-medium text-gray-800">需求分析</span>
+                                <span class="ml-auto">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+                                    <span class="text-xs text-gray-500 ml-1">已完成</span>
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">分析3-6岁儿童健康零食市场需求</p>
+                            <div class="flex items-center mt-2">
+                                <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a526161dc3a44703be086d833b7079d0~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=7DqXvLEzPGC9u5LCSArcHAgAcRU%3D" alt="Luna" class="w-5 h-5 rounded-full object-cover">
+                                <span class="text-xs text-gray-500 ml-1">Luna</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 任务2：市场调研 -->
+                    <div class="task-item completed">
+                        <div class="bg-green-50 p-3 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="font-medium text-gray-800">市场调研</span>
+                                <span class="ml-auto">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+                                    <span class="text-xs text-gray-500 ml-1">已完成</span>
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">收集市场趋势和竞争对手分析</p>
+                            <div class="flex items-center mt-2">
+                                <img src="https://p6-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8b95cec4fdac438391cba1551e259129~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576227&x-signature=41fswaEucmU%2Fstnj5Ot4oPV5Log%3D" alt="市场调研" class="w-5 h-5 rounded-full object-cover">
+                                <span class="text-xs text-gray-500 ml-1">市场调研AI</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 任务3：配方研发 -->
+                    <div class="task-item in-progress">
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="font-medium text-gray-800">配方研发</span>
+                                <span class="ml-auto">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-blue-500"></span>
+                                    <span class="text-xs text-gray-500 ml-1">进行中</span>
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">开发健康、营养均衡的零食配方</p>
+                            <div class="flex items-center mt-2">
+                                <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/86fef240e04c4c2fbcefaae21b4a5b7b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576208&x-signature=x3ecQxXpq0mBvsa5%2BaWotnaN%2Bww%3D" alt="配方研发" class="w-5 h-5 rounded-full object-cover">
+                                <span class="text-xs text-gray-500 ml-1">配方研发AI</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 任务4：包装设计 -->
+                    <div class="task-item pending">
+                        <div class="bg-yellow-50 p-3 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="font-medium text-gray-800">包装设计</span>
+                                <span class="ml-auto">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-yellow-500"></span>
+                                    <span class="text-xs text-gray-500 ml-1">待处理</span>
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">设计吸引儿童且符合安全标准的包装</p>
+                            <div class="flex items-center mt-2">
+                                <img src="https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/f7b9ac89656045a587079bbaec6c837b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576203&x-signature=a2nCHV%2FEJSk%2FN44Uqh9oa28ezYs%3D" alt="包装设计" class="w-5 h-5 rounded-full object-cover">
+                                <span class="text-xs text-gray-500 ml-1">包装设计AI</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 任务5：合规检查 -->
+                    <div class="task-item pending">
+                        <div class="bg-yellow-50 p-3 rounded-lg">
+                            <div class="flex items-center">
+                                <span class="font-medium text-gray-800">合规检查</span>
+                                <span class="ml-auto">
+                                    <span class="inline-block w-2 h-2 rounded-full bg-yellow-500"></span>
+                                    <span class="text-xs text-gray-500 ml-1">待处理</span>
+                                </span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">确保产品符合食品安全和标签法规</p>
+                            <div class="flex items-center mt-2">
+                                <img src="https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8d14fe5ccd7c4ccb913e6de8ea4670fe~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=I6ooq1f90FoKPG4GyfO1OWChp2U%3D" alt="Kai" class="w-5 h-5 rounded-full object-cover">
+                                <span class="text-xs text-gray-500 ml-1">Kai</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Agent详情模态框 -->
+    <div id="agent-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 overflow-hidden">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800" id="modal-title">Agent详情</h3>
+                <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4" id="modal-content">
+                <!-- 动态内容 -->
+            </div>
+            <div class="p-4 border-t border-gray-100 flex justify-end">
+                <button id="contact-agent" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all-300">
+                    联系此Agent
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建自定义Agent模态框 -->
+    <div id="create-agent-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg max-w-lg w-full mx-4 overflow-hidden">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">创建自定义智能体</h3>
+                <button id="close-create-modal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">智能体名称</label>
+                        <input type="text" id="new-agent-name" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="例如：营养师小王">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">角色类型</label>
+                        <select id="new-agent-role" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="general">通用助手</option>
+                            <option value="recipe-dev">配方研发</option>
+                            <option value="taste-test">口感测试</option>
+                            <option value="packaging-design">包装设计</option>
+                            <option value="market-research">市场调研</option>
+                            <option value="brand-strategy">品牌策划</option>
+                            <option value="channel-promotion">渠道推广</option>
+                            <option value="food-safety">食品安全</option>
+                            <option value="label-compliance">标签合规</option>
+                            <option value="quality-control">质量检测</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">头像URL</label>
+                        <input type="text" id="new-agent-avatar" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="输入头像图片URL">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">简介描述</label>
+                        <textarea id="new-agent-desc" rows="3" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="描述这个智能体的主要功能和特点..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">系统提示词</label>
+                        <textarea id="new-agent-prompt" rows="4" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="定义智能体的行为方式、回答风格等..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-100 flex justify-end space-x-2">
+                <button id="cancel-create-agent" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-all-300">
+                    取消
+                </button>
+                <button id="confirm-create-agent" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all-300">
+                    创建智能体
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 群聊视图 -->
+    <div id="group-chat-panel" class="fixed inset-0 bg-gray-50 z-40 hidden">
+        <div class="h-full flex flex-col">
+            <!-- 群聊头部 -->
+            <div class="bg-white shadow-sm border-b border-gray-200">
+                <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <button id="back-to-main" class="text-gray-500 hover:text-gray-700">
+                            <i class="fa fa-arrow-left text-xl"></i>
+                        </button>
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-teal-400 flex items-center justify-center">
+                                <i class="fa fa-users text-white"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h1 class="text-lg font-bold text-gray-800">AI群聊</h1>
+                                <p class="text-xs text-gray-500"><span id="online-agent-count">4</span>个智能体在线</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button id="add-agent-btn" class="px-3 py-1.5 bg-primary text-white text-sm rounded-md hover:bg-primary/90 transition-all-300 flex items-center">
+                            <i class="fa fa-plus mr-1"></i> 添加智能体
+                        </button>
+                        <button id="manage-agents-btn" class="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-md hover:bg-gray-200 transition-all-300 flex items-center">
+                            <i class="fa fa-cog mr-1"></i> 管理
+                        </button>
+                    </div>
+                </div>
+                <!-- 参与群聊的Agent头像栏 -->
+                <div class="px-4 pb-3 overflow-x-auto">
+                    <div class="flex space-x-2" id="group-chat-avatars">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 群聊消息区域 -->
+            <div class="flex-1 overflow-y-auto p-4" id="group-chat-messages">
+                <!-- 欢迎消息 -->
+                <div class="flex mb-4">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-teal-400 flex items-center justify-center flex-shrink-0">
+                        <i class="fa fa-robot text-white text-sm"></i>
+                    </div>
+                    <div class="ml-2">
+                        <div class="flex items-center">
+                            <span class="font-medium text-gray-800">系统</span>
+                        </div>
+                        <div class="message-bubble ai bg-blue-50 p-3 max-w-md mt-1">
+                            <p class="text-gray-700">欢迎来到AI群聊！在这里，多个智能体可以同时参与讨论，为您提供更全面的解决方案。您可以随时添加或移除智能体。</p>
+                        </div>
+                        <span class="text-xs text-gray-400 mt-1 block">刚刚</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 群聊输入区域 -->
+            <div class="bg-white border-t border-gray-200 p-4">
+                <div class="flex items-end space-x-2">
+                    <div class="flex-1 relative">
+                        <textarea id="group-message-input" rows="1" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none" placeholder="在群聊中提问，多个AI将协同回答..."></textarea>
+                    </div>
+                    <button id="group-send-button" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-all-300 flex items-center">
+                        <i class="fa fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
+                    <span>多个AI智能体将同时响应您的问题</span>
+                    <span id="responding-count">等待提问...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理智能体面板 -->
+    <div id="manage-agents-panel" class="fixed inset-0 bg-gray-50 z-50 hidden">
+        <div class="h-full flex flex-col">
+            <div class="bg-white shadow-sm border-b border-gray-200">
+                <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <button id="back-to-group-chat" class="text-gray-500 hover:text-gray-700">
+                            <i class="fa fa-arrow-left text-xl"></i>
+                        </button>
+                        <h1 class="text-lg font-bold text-gray-800">管理智能体</h1>
+                    </div>
+                    <button id="add-agent-from-manage" class="px-3 py-1.5 bg-primary text-white text-sm rounded-md hover:bg-primary/90 transition-all-300">
+                        <i class="fa fa-plus mr-1"></i> 添加
+                    </button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4">
+                <div class="space-y-3" id="manage-agents-list">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API设置模态框 -->
+    <div id="api-settings-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg max-w-lg w-full mx-4 overflow-hidden">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">API设置</h3>
+                <button id="close-api-settings" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">API类型</label>
+                        <select id="api-type" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="openai">OpenAI</option>
+                            <option value="anthropic">Anthropic (Claude)</option>
+                            <option value="azure">Azure OpenAI</option>
+                            <option value="doubao">豆包API (ByteDance)</option>
+                            <option value="deepseek">DeepSeek API</option>
+                            <option value="custom">自定义API</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                        <input type="password" id="api-key" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="sk-...">
+                    </div>
+                    <div id="doubao-credentials" class="hidden space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Access Key ID</label>
+                            <input type="text" id="api-access-key" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="your-access-key-id">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Secret Access Key</label>
+                            <input type="password" id="api-secret-key" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="your-secret-access-key">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                            <input type="text" id="api-region" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" value="cn-beijing">
+                        </div>
+                    </div>
+                    <div id="api-endpoint-container">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">API端点</label>
+                        <input type="text" id="api-endpoint" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="https://api.openai.com/v1/chat/completions">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">模型</label>
+                        <input type="text" id="api-model" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="gpt-4o">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">最大Token数</label>
+                        <input type="number" id="api-max-tokens" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" value="2048">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Temperature</label>
+                        <input type="number" id="api-temperature" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" value="0.7" step="0.1" min="0" max="2">
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="api-show-key" class="mr-2">
+                        <label for="api-show-key" class="text-sm text-gray-600">显示API Key</label>
+                    </div>
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3">
+                        <p class="text-sm text-yellow-700">提示：您的API Key将保存在浏览器本地存储中，不会发送到任何服务器。请确保API余额充足。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-100 flex justify-between">
+                <button id="test-api-btn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-all-300">
+                    测试连接
+                </button>
+                <div class="space-x-2">
+                    <button id="cancel-api-settings" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-all-300">
+                        取消
+                    </button>
+                    <button id="save-api-settings" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all-300">
+                        保存设置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录/注册模态框 -->
+    <div id="auth-modal" class="fixed inset-0 bg-gradient-to-br from-emerald-500 to-teal-700 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+            <div class="bg-gradient-to-r from-primary to-emerald-600 p-6 text-center">
+                <i class="fa fa-rocket text-4xl text-white mb-2"></i>
+                <h2 class="text-2xl font-bold text-white">AI军团</h2>
+                <p class="text-emerald-100 text-sm">儿童零食产品开发智能助手</p>
+            </div>
+            <div class="p-6">
+                <!-- 登录/注册标签切换 -->
+                <div class="flex border-b border-gray-200 mb-6">
+                    <button id="login-tab" class="flex-1 pb-3 text-center font-medium text-primary border-b-2 border-primary transition-colors">
+                        登录
+                    </button>
+                    <button id="register-tab" class="flex-1 pb-3 text-center font-medium text-gray-400 hover:text-gray-600 transition-colors">
+                        注册
+                    </button>
+                </div>
+                
+                <!-- 登录表单 -->
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                        <input type="text" id="login-username" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入用户名" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                        <input type="password" id="login-password" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入密码" required>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-primary to-emerald-600 text-white font-medium py-3 rounded-lg hover:opacity-90 transition-opacity">
+                        登录
+                    </button>
+                </form>
+                
+                <!-- 注册表单 -->
+                <form id="register-form" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                        <input type="text" id="register-username" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入用户名（4-20字符）" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                        <input type="password" id="register-password" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请输入密码（至少6位）" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">确认密码</label>
+                        <input type="password" id="register-confirm-password" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="请再次输入密码" required>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-primary to-emerald-600 text-white font-medium py-3 rounded-lg hover:opacity-90 transition-opacity">
+                        注册账号
+                    </button>
+                </form>
+                
+                <p id="auth-error" class="text-red-500 text-sm text-center mt-4 hidden"></p>
+            </div>
+            <div class="bg-gray-50 px-6 py-4 text-center">
+                <p class="text-gray-500 text-sm">登录即表示同意 <a href="#" class="text-primary hover:underline">用户协议</a> 和 <a href="#" class="text-primary hover:underline">隐私政策</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用户信息下拉菜单 -->
+    <div id="user-menu" class="hidden fixed top-4 right-4 z-40">
+        <div class="relative">
+            <button id="user-menu-btn" class="flex items-center space-x-2 bg-white rounded-full shadow-lg px-4 py-2 hover:shadow-xl transition-shadow">
+                <div class="w-8 h-8 bg-gradient-to-r from-primary to-emerald-500 rounded-full flex items-center justify-center">
+                    <i class="fa fa-user text-white text-sm"></i>
+                </div>
+                <span id="current-username" class="text-gray-700 font-medium"></span>
+                <i class="fa fa-chevron-down text-gray-400"></i>
+            </button>
+            <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2">
+                <div class="border-b border-gray-100 px-4 py-2">
+                    <p class="text-xs text-gray-500">已登录账号</p>
+                    <p id="dropdown-username" class="font-medium text-gray-800 truncate"></p>
+                </div>
+                <button id="logout-btn" class="w-full text-left px-4 py-2 text-red-500 hover:bg-red-50 transition-colors">
+                    <i class="fa fa-sign-out mr-2"></i>退出登录
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API状态指示器 -->
+    <div id="api-status-bar" class="fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-3 z-40 hidden">
+        <div class="flex items-center space-x-2">
+            <div id="api-status-dot" class="w-2 h-2 rounded-full bg-gray-400"></div>
+            <span id="api-status-text" class="text-sm text-gray-600">API未配置</span>
+            <button id="open-api-settings" class="text-primary hover:text-primary/80 ml-2" title="全局API设置">
+                <i class="fa fa-cog"></i>
+            </button>
+            <button id="dept-api-settings-btn" class="text-emerald-600 hover:text-emerald-800 ml-1" title="部门API配置">
+                <i class="fa fa-building-o"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 部门API配置面板 -->
+    <div id="dept-api-panel" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-primary to-emerald-600">
+                <h3 class="text-lg font-semibold text-white flex items-center">
+                    <i class="fa fa-cogs mr-2"></i>部门API配置
+                </h3>
+                <button id="close-dept-api" class="text-white hover:text-gray-200">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4 overflow-y-auto max-h-[calc(80vh-120px)]">
+                <p class="text-sm text-gray-600 mb-4">为每个部门配置独立的API，实现场景化智能助手</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="dept-api-cards">
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-100 flex justify-end">
+                <button id="close-dept-api-btn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-all-300">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 部门API编辑模态框 -->
+    <div id="dept-api-edit-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg max-w-lg w-full mx-4 overflow-hidden">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-blue-500 to-indigo-600">
+                <h3 id="dept-api-modal-title" class="text-lg font-semibold text-white">部门API配置</h3>
+                <button id="close-dept-api-edit" class="text-white hover:text-gray-200">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4 max-h-[60vh] overflow-y-auto">
+                <input type="hidden" id="dept-api-agent-id">
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="dept-use-custom-api" class="mr-2 w-4 h-4 text-primary">
+                        <label for="dept-use-custom-api" class="text-sm font-medium text-gray-700">启用部门独立API</label>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">API类型</label>
+                        <select id="dept-api-type" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="openai">OpenAI</option>
+                            <option value="anthropic">Anthropic (Claude)</option>
+                            <option value="azure">Azure OpenAI</option>
+                            <option value="doubao">豆包API (ByteDance)</option>
+                            <option value="deepseek">DeepSeek API</option>
+                            <option value="custom">自定义API</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                        <input type="password" id="dept-api-key" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="sk-...">
+                    </div>
+                    <div id="dept-doubao-region-container" class="hidden space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Access Key ID</label>
+                            <input type="text" id="dept-api-access-key" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="your-access-key-id">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Secret Access Key</label>
+                            <input type="password" id="dept-api-secret-key" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="your-secret-access-key">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                            <input type="text" id="dept-api-region" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" value="cn-beijing">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">API端点</label>
+                        <input type="text" id="dept-api-endpoint" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="https://api.openai.com/v1/chat/completions">
+                        <p class="text-xs text-gray-400 mt-1" id="dept-endpoint-hint"></p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">模型</label>
+                        <select id="dept-api-model-select" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="gpt-4o">GPT-4o (通用)</option>
+                            <option value="gpt-4">GPT-4 (通用)</option>
+                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            <option value="claude-3-opus">Claude 3 Opus</option>
+                            <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                            <option value="doubao-3-8k">doubao-3-8k (通用开发)</option>
+                            <option value="doubao-3-64k">doubao-3-64k (长文本)</option>
+                            <option value="doubao-3-mini">doubao-3-mini (批量处理)</option>
+                            <option value="deepseek-chat">deepseek-chat (通用对话)</option>
+                            <option value="deepseek-coder">deepseek-coder (代码生成)</option>
+                        </select>
+                        <input type="text" id="dept-api-model" class="hidden" value="">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">最大Token</label>
+                            <input type="number" id="dept-api-max-tokens" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" value="2048">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Temperature</label>
+                            <input type="number" id="dept-api-temperature" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" value="0.7" step="0.1" min="0" max="2">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">系统提示词</label>
+                        <textarea id="dept-system-prompt" rows="3" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="自定义系统提示词..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-100 flex justify-between">
+                <button id="test-dept-api-btn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-all-300">
+                    测试连接
+                </button>
+                <div class="space-x-2">
+                    <button id="cancel-dept-api" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-all-300">
+                        取消
+                    </button>
+                    <button id="save-dept-api" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all-300">
+                        保存设置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Agent数据
+        const agents = {
+            "luna": {
+                name: "Luna",
+                role: "中枢首席执行官",
+                description: "负责需求拆解、任务调度、结果汇总，是整个军团的核心枢纽。",
+                avatar: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a526161dc3a44703be086d833b7079d0~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=7DqXvLEzPGC9u5LCSArcHAgAcRU%3D",
+                color: "secondary",
+                capabilities: [
+                    "需求分析与拆解",
+                    "跨部门任务调度",
+                    "项目进度监控",
+                    "结果汇总与汇报"
+                ],
+                response: "我已收到您的需求，将立即协调相关团队成员进行评估和方案设计。我们将在24小时内为您提供初步方案。"
+            },
+            "milo": {
+                name: "Milo",
+                role: "产品研发总监",
+                description: "统领配方研发、口感测试、包装设计子Agent，负责产品研发全流程。",
+                avatar: "https://p9-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/4abc1fe44c4f4cd38f4e0eca8a3f3f6a~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=Vo1nPAAhUrQJ%2BRJlCY0H1t2HtFU%3D",
+                color: "tertiary",
+                capabilities: [
+                    "产品配方研发",
+                    "口感与风味优化",
+                    "包装设计指导",
+                    "产品成本控制"
+                ],
+                response: "作为产品研发总监，我将带领团队为您开发既健康又美味的儿童零食。我们注重营养均衡和口感体验的完美结合。"
+            },
+            "zoe": {
+                name: "Zoe",
+                role: "市场运营总监",
+                description: "带领市场调研、品牌策划、渠道推广子Agent，负责市场相关工作。",
+                avatar: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1e87337a26124a3aa7d62b81c5b55d9a~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=VN2RSLIKq695LdGg8%2BwvZMXIDkw%3D",
+                color: "accent",
+                capabilities: [
+                    "市场趋势分析",
+                    "品牌策略制定",
+                    "渠道规划与推广",
+                    "消费者行为研究"
+                ],
+                response: "我是市场运营总监Zoe，擅长把握市场趋势和消费者需求。我们的团队将为您的产品制定有效的市场策略和推广方案。"
+            },
+            "kai": {
+                name: "Kai",
+                role: "合规质量总监",
+                description: "管理食品安全合规、标签合规、质量检测子Agent，保障产品合规与质量。",
+                avatar: "https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8d14fe5ccd7c4ccb913e6de8ea4670fe~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=I6ooq1f90FoKPG4GyfO1OWChp2U%3D",
+                color: "warning",
+                capabilities: [
+                    "食品安全法规合规",
+                    "产品标签审核",
+                    "质量控制标准制定",
+                    "生产流程监督"
+                ],
+                response: "我是合规质量总监Kai，确保所有产品符合严格的安全标准和法规要求是我的首要任务。我们将为您的产品提供全面的合规保障。"
+            },
+            "recipe-dev": {
+                name: "配方研发AI",
+                role: "配方研发专员",
+                description: "负责开发健康、营养均衡的儿童零食配方，确保产品符合营养标准。",
+                avatar: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/86fef240e04c4c2fbcefaae21b4a5b7b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576208&x-signature=x3ecQxXpq0mBvsa5%2BaWotnaN%2Bww%3D",
+                color: "recipe-dev",
+                capabilities: [
+                    "营养成分分析",
+                    "配方优化与创新",
+                    "原料替代方案",
+                    "成本与营养平衡"
+                ],
+                response: "我是配方研发AI，专注于开发既营养又美味的儿童零食配方。我可以根据您的需求，设计符合特定年龄段营养需求的产品配方。"
+            },
+            "taste-test": {
+                name: "口感测试AI",
+                role: "口感测试专员",
+                description: "负责评估产品的口感、风味和质地，确保产品符合目标年龄段儿童的喜好。",
+                avatar: "https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/d3dcdb8a82e546a6a66c52e5e04a35ae~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576202&x-signature=eRWbRvB2%2FnrYhhNFxeDdg%2BOV8Tw%3D",
+                color: "taste-test",
+                capabilities: [
+                    "口感分析与评估",
+                    "风味调配建议",
+                    "质地优化方案",
+                    "目标人群喜好预测"
+                ],
+                response: "我是口感测试AI，专注于确保零食的口感和风味能受到孩子们的喜爱。我可以提供关于产品质地、味道和口感的专业建议。"
+            },
+            "packaging-design": {
+                name: "包装设计AI",
+                role: "包装设计专员",
+                description: "负责设计既吸引儿童又符合安全标准的产品包装，提升产品吸引力。",
+                avatar: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/f7b9ac89656045a587079bbaec6c837b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576203&x-signature=a2nCHV%2FEJSk%2FN44Uqh9oa28ezYs%3D",
+                color: "packaging-design",
+                capabilities: [
+                    "包装外观设计",
+                    "安全标准合规",
+                    "环保材料选择",
+                    "品牌元素整合"
+                ],
+                response: "我是包装设计AI，专注于创建既美观又安全的儿童零食包装。我可以设计符合目标年龄段审美且满足安全标准的包装方案。"
+            },
+            "market-research": {
+                name: "市场调研AI",
+                role: "市场调研专员",
+                description: "负责收集和分析市场趋势、竞争对手和消费者需求数据，为产品开发提供依据。",
+                avatar: "https://p6-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8b95cec4fdac438391cba1551e259129~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576227&x-signature=41fswaEucmU%2Fstnj5Ot4oPV5Log%3D",
+                color: "market-research",
+                capabilities: [
+                    "市场趋势分析",
+                    "竞争对手研究",
+                    "消费者需求调研",
+                    "数据可视化报告"
+                ],
+                response: "我是市场调研AI，专注于分析儿童零食市场趋势和消费者需求。我可以为您提供详细的市场分析报告，帮助您了解最新的市场动态。"
+            },
+            "brand-strategy": {
+                name: "品牌策划AI",
+                role: "品牌策划专员",
+                description: "负责制定产品品牌策略、定位和传播方案，提升品牌影响力。",
+                avatar: "https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/bc0cfe4d702b42b887ba7fb673d1bcce~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576232&x-signature=3D%2F%2FbjaS8%2BDsF6HXz2cyu0GGCaY%3D",
+                color: "brand-strategy",
+                capabilities: [
+                    "品牌定位策略",
+                    "品牌故事创作",
+                    "视觉识别系统设计",
+                    "品牌传播方案"
+                ],
+                response: "我是品牌策划AI，专注于打造有吸引力的儿童零食品牌。我可以帮助您制定独特的品牌定位和有效的传播策略，提升产品的市场竞争力。"
+            },
+            "channel-promotion": {
+                name: "渠道推广AI",
+                role: "渠道推广专员",
+                description: "负责制定和执行产品推广策略，拓展销售渠道，提升产品销量。",
+                avatar: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/76ea77244bff43c6856bbef4f8276a1e~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576227&x-signature=yZc8uTtEKLCWAJn5sMXfM7DskNc%3D",
+                color: "channel-promotion",
+                capabilities: [
+                    "销售渠道规划",
+                    "促销活动策划",
+                    "数字营销方案",
+                    "KOL合作策略"
+                ],
+                response: "我是渠道推广AI，专注于制定有效的产品推广策略和渠道拓展方案。我可以帮助您的产品快速进入市场并获得目标消费者的关注。"
+            },
+            "food-safety": {
+                name: "食品安全合规AI",
+                role: "食品安全合规专员",
+                description: "负责确保产品符合食品安全法规和标准，保障产品安全。",
+                avatar: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1b42a292eee04ab89870752fff086800~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576251&x-signature=PKCAbC308FokWfzWSOg0ngem%2BBs%3D",
+                color: "food-safety",
+                capabilities: [
+                    "食品安全法规解读",
+                    "原料安全评估",
+                    "生产流程审核",
+                    "风险预警分析"
+                ],
+                response: "我是食品安全合规AI，专注于确保产品符合所有相关的食品安全法规和标准。我将帮助您的产品安全合规地进入市场。"
+            },
+            "label-compliance": {
+                name: "标签合规AI",
+                role: "标签合规专员",
+                description: "负责审核产品标签和说明书，确保符合法规要求。",
+                avatar: "https://p11-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1380f8e7498849e3a517e067f413fa42~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576252&x-signature=rfTwAriWV34RshHcYbMhRSCnZ40%3D",
+                color: "label-compliance",
+                capabilities: [
+                    "标签法规审核",
+                    "营养成分标注",
+                    "警示语要求",
+                    "多语言标签支持"
+                ],
+                response: "我是标签合规AI，专注于确保产品标签符合所有法规要求。我可以帮助您审核和优化产品标签，避免因标签问题导致的合规风险。"
+            },
+            "quality-control": {
+                name: "质量检测AI",
+                role: "质量检测专员",
+                description: "负责制定和执行产品质量检测标准，确保产品质量稳定。",
+                avatar: "https://p9-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1bcb4496e42c44ebb12ae579db1e1fc9~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576251&x-signature=%2F99TLOjvcBEAf4yqEycwBH0EspU%3D",
+                color: "quality-control",
+                capabilities: [
+                    "质量检测标准制定",
+                    "生产过程监控",
+                    "成品质量评估",
+                    "质量改进建议"
+                ],
+                response: "我是质量检测AI，专注于确保产品质量稳定且符合标准。我可以帮助您建立完善的质量控制体系，确保每一批产品都能达到最高标准。"
+            }
+        };
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化折叠/展开功能
+            initCollapseExpand();
+            
+            // 初始化Agent点击事件
+            initAgentClick();
+            
+            // 初始化模态框关闭事件
+            initModalClose();
+            
+            // 初始化联系Agent按钮
+            initContactAgent();
+            
+            // 初始化聊天功能
+            initChat();
+        });
+
+        // 初始化折叠/展开功能
+        function initCollapseExpand() {
+            const agentNodes = document.querySelectorAll('.agent-node');
+            agentNodes.forEach(node => {
+                node.addEventListener('click', function(e) {
+                    // 如果点击的是子元素（如图片），不触发折叠/展开
+                    if (e.target.tagName === 'IMG' || e.target.tagName === 'H3' || e.target.tagName === 'P') {
+                        return;
+                    }
+                    
+                    const childrenContainer = this.nextElementSibling;
+                    const icon = this.querySelector('.fa-chevron-down');
+                    
+                    if (childrenContainer && childrenContainer.classList.contains('agent-children')) {
+                        childrenContainer.classList.toggle('hidden');
+                        if (icon) {
+                            icon.classList.toggle('transform');
+                            icon.classList.toggle('rotate-180');
+                        }
+                    }
+                });
+            });
+        }
+
+        // 初始化Agent点击事件
+        function initAgentClick() {
+            const agentNodes = document.querySelectorAll('.agent-node');
+            agentNodes.forEach(node => {
+                node.addEventListener('click', function() {
+                    const agentId = this.getAttribute('data-agent-id');
+                    if (agentId && agents[agentId]) {
+                        showAgentModal(agentId);
+                    }
+                });
+            });
+        }
+
+        // 显示Agent详情模态框
+        function showAgentModal(agentId) {
+            const agent = agents[agentId];
+            if (!agent) return;
+            
+            const modal = document.getElementById('agent-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalContent = document.getElementById('modal-content');
+            
+            // 设置标题
+            modalTitle.textContent = `${agent.name} - ${agent.role}`;
+            
+            // 设置内容
+            let capabilitiesHtml = '';
+            if (agent.capabilities && agent.capabilities.length > 0) {
+                capabilitiesHtml = `
+                    <div class="mt-4">
+                        <h4 class="font-medium text-gray-700 mb-2">核心能力</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-600">
+                            ${agent.capabilities.map(cap => `<li>${cap}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            modalContent.innerHTML = `
+                <div class="flex items-center">
+                    <img src="${agent.avatar}" alt="${agent.name}" class="w-16 h-16 rounded-full object-cover border-4 border-${agent.color}">
+                    <div class="ml-4">
+                        <h3 class="text-xl font-bold text-gray-800">${agent.name}</h3>
+                        <p class="text-sm text-gray-500">${agent.role}</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h4 class="font-medium text-gray-700 mb-2">职责描述</h4>
+                    <p class="text-sm text-gray-600">${agent.description}</p>
+                </div>
+                ${capabilitiesHtml}
+            `;
+            
+            // 显示模态框
+            modal.classList.remove('hidden');
+            
+            // 设置联系按钮的Agent ID
+            const contactButton = document.getElementById('contact-agent');
+            contactButton.setAttribute('data-agent-id', agentId);
+        }
+
+        // 初始化模态框关闭事件
+        function initModalClose() {
+            const closeButton = document.getElementById('close-modal');
+            const modal = document.getElementById('agent-modal');
+            
+            closeButton.addEventListener('click', function() {
+                modal.classList.add('hidden');
+            });
+            
+            // 点击模态框外部关闭
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        }
+
+        // 初始化联系Agent按钮
+        function initContactAgent() {
+            const contactButton = document.getElementById('contact-agent');
+            
+            contactButton.addEventListener('click', function() {
+                const agentId = this.getAttribute('data-agent-id');
+                if (agentId && agents[agentId]) {
+                    // 关闭模态框
+                    document.getElementById('agent-modal').classList.add('hidden');
+                    
+                    // 聚焦到聊天输入框
+                    document.getElementById('message-input').focus();
+                    
+                    // 可以在这里添加预设消息或其他逻辑
+                }
+            });
+        }
+
+        // 初始化聊天功能
+        function initChat() {
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            const chatMessages = document.getElementById('chat-messages');
+            
+            // 发送消息函数
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (!message) return;
+                
+                // 添加用户消息
+                addUserMessage(message);
+                
+                // 清空输入框
+                messageInput.value = '';
+                
+                // 显示AI正在输入
+                showTypingIndicator();
+                
+                // 模拟AI回复延迟
+                setTimeout(() => {
+                    // 移除输入指示器
+                    removeTypingIndicator();
+                    
+                    // 添加AI回复
+                    addAIResponse(message);
+                    
+                    // 滚动到底部
+                    scrollToBottom();
+                }, 1500);
+            }
+            
+            // 添加用户消息
+            function addUserMessage(message) {
+                addToChatHistory('user', message);
+                
+                const userMessageHtml = `
+                    <div class="flex mb-4 justify-end">
+                        <div class="mr-2">
+                            <div class="message-bubble user bg-gray-100 p-3 max-w-md mt-1">
+                                <p class="text-gray-700">${message}</p>
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                            <i class="fa fa-user text-gray-600"></i>
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.insertAdjacentHTML('beforeend', userMessageHtml);
+                scrollToBottom();
+            }
+            
+            // 显示AI正在输入指示器
+            function showTypingIndicator() {
+                const typingHtml = `
+                    <div class="flex mb-4" id="typing-indicator">
+                        <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a526161dc3a44703be086d833b7079d0~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=7DqXvLEzPGC9u5LCSArcHAgAcRU%3D" alt="Luna" class="w-8 h-8 rounded-full object-cover">
+                        <div class="ml-2">
+                            <div class="flex items-center">
+                                <span class="font-medium text-gray-800">Luna</span>
+                                <span class="text-xs text-gray-500 ml-2">中枢首席执行官</span>
+                            </div>
+                            <div class="bg-blue-50 p-3 rounded-lg mt-1">
+                                <div class="typing-indicator">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.insertAdjacentHTML('beforeend', typingHtml);
+                scrollToBottom();
+            }
+            
+            // 移除输入指示器
+            function removeTypingIndicator() {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+            
+            // 添加AI回复
+            function addAIResponse(userMessage) {
+                // 简单的关键词匹配来决定回复内容
+                let response = "";
+                let agent = agents["luna"]; // 默认使用Luna回复
+                
+                // 根据用户消息内容选择合适的Agent回复
+                if (userMessage.includes("配方") || userMessage.includes("成分") || userMessage.includes("营养")) {
+                    agent = agents["recipe-dev"];
+                } else if (userMessage.includes("口感") || userMessage.includes("味道") || userMessage.includes("风味")) {
+                    agent = agents["taste-test"];
+                } else if (userMessage.includes("包装") || userMessage.includes("设计") || userMessage.includes("外观")) {
+                    agent = agents["packaging-design"];
+                } else if (userMessage.includes("市场") || userMessage.includes("趋势") || userMessage.includes("竞品")) {
+                    agent = agents["market-research"];
+                } else if (userMessage.includes("品牌") || userMessage.includes("定位") || userMessage.includes("策略")) {
+                    agent = agents["brand-strategy"];
+                } else if (userMessage.includes("推广") || userMessage.includes("渠道") || userMessage.includes("销售")) {
+                    agent = agents["channel-promotion"];
+                } else if (userMessage.includes("安全") || userMessage.includes("法规") || userMessage.includes("标准")) {
+                    agent = agents["food-safety"];
+                } else if (userMessage.includes("标签") || userMessage.includes("说明") || userMessage.includes("标注")) {
+                    agent = agents["label-compliance"];
+                } else if (userMessage.includes("质量") || userMessage.includes("检测") || userMessage.includes("控制")) {
+                    agent = agents["quality-control"];
+                }
+                
+                // 生成回复内容
+                response = generateResponse(userMessage, agent);
+                
+                addToChatHistory('assistant', response, agent.name);
+                
+                const aiMessageHtml = `
+                    <div class="flex mb-4">
+                        <img src="${agent.avatar}" alt="${agent.name}" class="w-8 h-8 rounded-full object-cover">
+                        <div class="ml-2">
+                            <div class="flex items-center">
+                                <span class="font-medium text-gray-800">${agent.name}</span>
+                                <span class="text-xs text-gray-500 ml-2">${agent.role}</span>
+                            </div>
+                            <div class="message-bubble ai bg-blue-50 p-3 max-w-md mt-1">
+                                <p class="text-gray-700">${response}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.insertAdjacentHTML('beforeend', aiMessageHtml);
+            }
+            
+            // 生成AI回复
+            function generateResponse(userMessage, agent) {
+                // 这里可以根据用户消息和选择的Agent生成更智能的回复
+                // 简单示例中，我们使用预设的回复
+                
+                // 如果Agent有预设回复，使用预设回复
+                if (agent.response) {
+                    return agent.response;
+                }
+                
+                // 否则生成通用回复
+                return `感谢您的咨询！作为${agent.role}，我可以为您提供关于${userMessage}的专业建议。请告诉我更多细节，以便我能更好地帮助您。`;
+            }
+            
+            // 滚动到底部
+            function scrollToBottom() {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // 发送按钮点击事件
+            sendButton.addEventListener('click', sendMessage);
+            
+            // 输入框回车事件
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+
+        // 群聊功能
+        let customAgents = [];
+        let activeGroupAgents = [];
+        
+        const defaultGroupAgents = ['luna', 'milo', 'zoe', 'kai'];
+        
+        function initGroupChat() {
+            activeGroupAgents = [...defaultGroupAgents];
+            
+            document.getElementById('group-chat-btn').addEventListener('click', showGroupChat);
+            document.getElementById('back-to-main').addEventListener('click', hideGroupChat);
+            document.getElementById('add-agent-btn').addEventListener('click', showCreateAgentModal);
+            document.getElementById('manage-agents-btn').addEventListener('click', showManageAgents);
+            document.getElementById('back-to-group-chat').addEventListener('click', hideManageAgents);
+            document.getElementById('add-agent-from-manage').addEventListener('click', showCreateAgentModal);
+            
+            document.getElementById('close-create-modal').addEventListener('click', hideCreateAgentModal);
+            document.getElementById('cancel-create-agent').addEventListener('click', hideCreateAgentModal);
+            document.getElementById('confirm-create-agent').addEventListener('click', createCustomAgent);
+            
+            document.getElementById('group-send-button').addEventListener('click', sendGroupMessage);
+            document.getElementById('group-message-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendGroupMessage();
+                }
+            });
+            
+            updateGroupChatAvatars();
+            updateOnlineAgentCount();
+        }
+        
+        function showGroupChat() {
+            document.getElementById('group-chat-panel').classList.remove('hidden');
+        }
+        
+        function hideGroupChat() {
+            document.getElementById('group-chat-panel').classList.add('hidden');
+        }
+        
+        function showCreateAgentModal() {
+            document.getElementById('create-agent-modal').classList.remove('hidden');
+            document.getElementById('new-agent-name').value = '';
+            document.getElementById('new-agent-role').value = 'general';
+            document.getElementById('new-agent-avatar').value = '';
+            document.getElementById('new-agent-desc').value = '';
+            document.getElementById('new-agent-prompt').value = '';
+        }
+        
+        function hideCreateAgentModal() {
+            document.getElementById('create-agent-modal').classList.add('hidden');
+        }
+        
+        function createCustomAgent() {
+            const name = document.getElementById('new-agent-name').value.trim();
+            const role = document.getElementById('new-agent-role').value;
+            const avatar = document.getElementById('new-agent-avatar').value.trim();
+            const desc = document.getElementById('new-agent-desc').value.trim();
+            const prompt = document.getElementById('new-agent-prompt').value.trim();
+            
+            if (!name) {
+                alert('请输入智能体名称');
+                return;
+            }
+            
+            const agentId = 'custom_' + Date.now();
+            const defaultAvatars = {
+                'general': 'https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a526161dc3a44703be086d833b7079d0~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=7DqXvLEzPGC9u5LCSArcHAgAcRU%3D',
+                'recipe-dev': 'https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/86fef240e04c4c2fbcefaae21b4a5b7b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576208&x-signature=x3ecQxXpq0mBvsa5%2BaWotnaN%2Bww%3D',
+                'taste-test': 'https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/d3dcdb8a82e546a6a66c52e5e04a35ae~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576202&x-signature=eRWbRvB2%2FnrYhhNFxeDdg%2BOV8Tw%3D',
+                'packaging-design': 'https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/f7b9ac89656045a587079bbaec6c837b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576203&x-signature=a2nCHV%2FEJSk%2FN44Uqh9oa28ezYs%3D',
+                'market-research': 'https://p6-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8b95cec4fdac438391cba1551e259129~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576227&x-signature=41fswaEucmU%2Fstnj5Ot4oPV5Log%3D',
+                'brand-strategy': 'https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/bc0cfe4d702b42b887ba7fb673d1bcce~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576232&x-signature=3D%2F%2FbjaS8%2BDsF6HXz2cyu0GGCaY%3D',
+                'channel-promotion': 'https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/76ea77244bff43c6856bbef4f8276a1e~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576227&x-signature=yZc8uTtEKLCWAJn5sMXfM7DskNc%3D',
+                'food-safety': 'https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1b42a292eee04ab89870752fff086800~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576251&x-signature=PKCAbC308FokWfzWSOg0ngem%2BBs%3D',
+                'label-compliance': 'https://p11-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1380f8e7498849e3a517e067f413fa42~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576252&x-signature=rfTwAriWV34RshHcYbMhRSCnZ40%3D',
+                'quality-control': 'https://p9-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1bcb4496e42c44ebb12ae579db1e1fc9~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576251&x-signature=%2F99TLOjvcBEAf4yqEycwBH0EspU%3D',
+            };
+            
+            const roleNames = {
+                'general': '通用助手',
+                'recipe-dev': '配方研发专员',
+                'taste-test': '口感测试专员',
+                'packaging-design': '包装设计专员',
+                'market-research': '市场调研专员',
+                'brand-strategy': '品牌策划专员',
+                'channel-promotion': '渠道推广专员',
+                'food-safety': '食品安全合规专员',
+                'label-compliance': '标签合规专员',
+                'quality-control': '质量检测专员',
+            };
+            
+            const newAgent = {
+                id: agentId,
+                name: name,
+                role: roleNames[role] || '通用助手',
+                description: desc || `我是${name}，${roleNames[role] || '通用助手'}，很高兴为您服务。`,
+                avatar: avatar || defaultAvatars[role] || defaultAvatars['general'],
+                color: role,
+                capabilities: [],
+                systemPrompt: prompt || `你是一个乐于助人的AI助手。`,
+                response: desc || `您好！我是${name}，有什么可以帮助您的吗？`,
+                isCustom: true
+            };
+            
+            customAgents.push(newAgent);
+            agents[agentId] = newAgent;
+            activeGroupAgents.push(agentId);
+            
+            hideCreateAgentModal();
+            updateGroupChatAvatars();
+            updateOnlineAgentCount();
+            updateManageAgentsList();
+            
+            addSystemMessage(`智能体 "${name}" 已创建并添加到群聊中！`);
+        }
+        
+        function updateGroupChatAvatars() {
+            const container = document.getElementById('group-chat-avatars');
+            container.innerHTML = '';
+            
+            activeGroupAgents.forEach(agentId => {
+                const agent = agents[agentId];
+                if (agent) {
+                    const avatarHtml = `
+                        <div class="flex-shrink-0 relative group cursor-pointer" data-agent-id="${agentId}">
+                            <img src="${agent.avatar}" alt="${agent.name}" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm hover:scale-110 transition-transform">
+                            <button class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity remove-agent-btn" data-agent-id="${agentId}">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', avatarHtml);
+                }
+            });
+            
+            document.querySelectorAll('.remove-agent-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const agentId = this.getAttribute('data-agent-id');
+                    removeAgentFromGroup(agentId);
+                });
+            });
+        }
+        
+        function removeAgentFromGroup(agentId) {
+            const index = activeGroupAgents.indexOf(agentId);
+            if (index > -1) {
+                activeGroupAgents.splice(index, 1);
+                updateGroupChatAvatars();
+                updateOnlineAgentCount();
+                const agent = agents[agentId];
+                if (agent) {
+                    addSystemMessage(`智能体 "${agent.name}" 已从群聊中移除。`);
+                }
+            }
+        }
+        
+        function updateOnlineAgentCount() {
+            document.getElementById('online-agent-count').textContent = activeGroupAgents.length;
+        }
+        
+        function showManageAgents() {
+            updateManageAgentsList();
+            document.getElementById('manage-agents-panel').classList.remove('hidden');
+        }
+        
+        function hideManageAgents() {
+            document.getElementById('manage-agents-panel').classList.add('hidden');
+        }
+        
+        function updateManageAgentsList() {
+            const container = document.getElementById('manage-agents-list');
+            container.innerHTML = '';
+            
+            activeGroupAgents.forEach(agentId => {
+                const agent = agents[agentId];
+                if (agent) {
+                    const agentHtml = `
+                        <div class="bg-white rounded-lg shadow-card p-4 flex items-center justify-between">
+                            <div class="flex items-center">
+                                <img src="${agent.avatar}" alt="${agent.name}" class="w-12 h-12 rounded-full object-cover">
+                                <div class="ml-3">
+                                    <h3 class="font-medium text-gray-800">${agent.name}</h3>
+                                    <p class="text-xs text-gray-500">${agent.role}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <label class="flex items-center cursor-pointer">
+                                    <div class="relative">
+                                        <input type="checkbox" class="sr-only toggle-agent" data-agent-id="${agentId}" ${activeGroupAgents.includes(agentId) ? 'checked' : ''}>
+                                        <div class="block bg-gray-200 w-10 h-6 rounded-full toggle-bg ${activeGroupAgents.includes(agentId) ? 'bg-primary' : ''}"></div>
+                                        <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${activeGroupAgents.includes(agentId) ? 'transform translate-x-4' : ''}"></div>
+                                    </div>
+                                </label>
+                                ${agent.isCustom ? `<button class="text-red-500 hover:text-red-700 delete-agent-btn" data-agent-id="${agentId}"><i class="fa fa-trash"></i></button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    container.insertAdjacentHTML('beforeend', agentHtml);
+                }
+            });
+            
+            document.querySelectorAll('.toggle-agent').forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const agentId = this.getAttribute('data-agent-id');
+                    const isChecked = this.checked;
+                    const bgDiv = this.parentElement.querySelector('.toggle-bg');
+                    const dotDiv = this.parentElement.querySelector('.dot');
+                    
+                    if (isChecked) {
+                        if (!activeGroupAgents.includes(agentId)) {
+                            activeGroupAgents.push(agentId);
+                        }
+                        bgDiv.classList.add('bg-primary');
+                        bgDiv.classList.remove('bg-gray-200');
+                        dotDiv.classList.add('transform', 'translate-x-4');
+                    } else {
+                        const index = activeGroupAgents.indexOf(agentId);
+                        if (index > -1) {
+                            activeGroupAgents.splice(index, 1);
+                        }
+                        bgDiv.classList.remove('bg-primary');
+                        bgDiv.classList.add('bg-gray-200');
+                        dotDiv.classList.remove('transform', 'translate-x-4');
+                    }
+                    
+                    updateGroupChatAvatars();
+                    updateOnlineAgentCount();
+                });
+            });
+            
+            document.querySelectorAll('.delete-agent-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const agentId = this.getAttribute('data-agent-id');
+                    if (confirm('确定要删除这个智能体吗？')) {
+                        deleteCustomAgent(agentId);
+                    }
+                });
+            });
+        }
+        
+        function deleteCustomAgent(agentId) {
+            const agent = agents[agentId];
+            if (agent && agent.isCustom) {
+                const index = customAgents.findIndex(a => a.id === agentId);
+                if (index > -1) {
+                    customAgents.splice(index, 1);
+                }
+                const groupIndex = activeGroupAgents.indexOf(agentId);
+                if (groupIndex > -1) {
+                    activeGroupAgents.splice(groupIndex, 1);
+                }
+                delete agents[agentId];
+                updateManageAgentsList();
+                updateGroupChatAvatars();
+                updateOnlineAgentCount();
+                addSystemMessage(`智能体 "${agent.name}" 已被删除。`);
+            }
+        }
+        
+        function sendGroupMessage() {
+            const input = document.getElementById('group-message-input');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            addUserGroupMessage(message);
+            input.value = '';
+            
+            const respondingAgents = [...activeGroupAgents];
+            document.getElementById('responding-count').textContent = `${respondingAgents.length}个AI正在思考...`;
+            
+            respondingAgents.forEach((agentId, index) => {
+                const agent = agents[agentId];
+                if (!agent) return;
+                
+                const delay = 500 + Math.random() * 1000 + index * 300;
+                
+                setTimeout(async () => {
+                    addGroupTypingIndicator(agentId);
+                    
+                    let response;
+                    try {
+                        if (apiSettings.apiKey) {
+                            const systemPrompt = agent.systemPrompt || `你是一个${agent.role}，请根据用户的问题提供专业的回答。`;
+                            const messages = [{ role: 'user', content: message }];
+                            response = await callAIAPI(messages, [systemPrompt]);
+                        } else {
+                            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+                            response = generateGroupResponse(message, agent);
+                        }
+                    } catch (error) {
+                        response = `抱歉，调用API时出错: ${error.message}`;
+                    }
+                    
+                    removeGroupTypingIndicator(agentId);
+                    addGroupAIResponse(agent, response);
+                    
+                    const remaining = respondingAgents.filter((_, i) => i > index && !document.querySelector(`[data-responding="${respondingAgents[i]}"]`));
+                    if (remaining.length === 0) {
+                        document.getElementById('responding-count').textContent = '等待提问...';
+                    } else {
+                        document.getElementById('responding-count').textContent = `${remaining.length}个AI正在思考...`;
+                    }
+                }, delay);
+            });
+        }
+        
+        function addUserGroupMessage(message) {
+            const container = document.getElementById('group-chat-messages');
+            const messageHtml = `
+                <div class="flex mb-4 justify-end">
+                    <div class="mr-2">
+                        <div class="message-bubble user bg-gray-100 p-3 max-w-md mt-1">
+                            <p class="text-gray-700">${message}</p>
+                        </div>
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center flex-shrink-0">
+                        <i class="fa fa-user text-gray-600"></i>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', messageHtml);
+            scrollGroupToBottom();
+        }
+        
+        function addGroupTypingIndicator(agentId) {
+            const container = document.getElementById('group-chat-messages');
+            const agent = agents[agentId];
+            if (!agent) return;
+            
+            const typingHtml = `
+                <div class="flex mb-4 group-typing" data-responding="${agentId}">
+                    <img src="${agent.avatar}" alt="${agent.name}" class="w-8 h-8 rounded-full object-cover flex-shrink-0">
+                    <div class="ml-2">
+                        <div class="flex items-center">
+                            <span class="font-medium text-gray-800">${agent.name}</span>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded-lg mt-1">
+                            <div class="typing-indicator">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', typingHtml);
+            scrollGroupToBottom();
+        }
+        
+        function removeGroupTypingIndicator(agentId) {
+            const typing = document.querySelector(`[data-responding="${agentId}"]`);
+            if (typing) {
+                typing.remove();
+            }
+        }
+        
+        function addGroupAIResponse(agent, response) {
+            const container = document.getElementById('group-chat-messages');
+            const messageHtml = `
+                <div class="flex mb-4">
+                    <img src="${agent.avatar}" alt="${agent.name}" class="w-8 h-8 rounded-full object-cover flex-shrink-0">
+                    <div class="ml-2">
+                        <div class="flex items-center">
+                            <span class="font-medium text-gray-800">${agent.name}</span>
+                            <span class="text-xs text-gray-500 ml-2">${agent.role}</span>
+                        </div>
+                        <div class="message-bubble ai bg-blue-50 p-3 max-w-md mt-1">
+                            <p class="text-gray-700">${response}</p>
+                        </div>
+                        <span class="text-xs text-gray-400 mt-1 block">刚刚</span>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', messageHtml);
+            scrollGroupToBottom();
+        }
+        
+        function addSystemMessage(message) {
+            const container = document.getElementById('group-chat-messages');
+            const messageHtml = `
+                <div class="flex mb-4">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-teal-400 flex items-center justify-center flex-shrink-0">
+                        <i class="fa fa-info-circle text-white text-sm"></i>
+                    </div>
+                    <div class="ml-2">
+                        <div class="flex items-center">
+                            <span class="font-medium text-gray-800">系统</span>
+                        </div>
+                        <div class="bg-gray-100 p-3 rounded-lg mt-1 max-w-md">
+                            <p class="text-gray-600 text-sm">${message}</p>
+                        </div>
+                        <span class="text-xs text-gray-400 mt-1 block">刚刚</span>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', messageHtml);
+            scrollGroupToBottom();
+        }
+        
+        function scrollGroupToBottom() {
+            const container = document.getElementById('group-chat-messages');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function generateGroupResponse(userMessage, agent) {
+            if (agent.response) {
+                return agent.response;
+            }
+            
+            const keywords = {
+                'recipe-dev': ['配方', '成分', '营养', '原料', '健康'],
+                'taste-test': ['口感', '味道', '风味', '好吃', '味'],
+                'packaging-design': ['包装', '设计', '外观', '图案', '颜值'],
+                'market-research': ['市场', '趋势', '竞品', '调研', '数据'],
+                'brand-strategy': ['品牌', '定位', '策略', '传播', '形象'],
+                'channel-promotion': ['推广', '渠道', '销售', '营销', '广告'],
+                'food-safety': ['安全', '法规', '标准', '合规', '检测'],
+                'label-compliance': ['标签', '说明', '标注', '成分表'],
+                'quality-control': ['质量', '检测', '控制', '标准', '品质'],
+            };
+            
+            const role = agent.color || 'general';
+            const roleKeywords = keywords[role] || [];
+            
+            const hasKeyword = roleKeywords.some(kw => userMessage.includes(kw));
+            
+            if (hasKeyword) {
+                return `关于您提到的"${userMessage}"，作为${agent.role}，我可以为您提供专业的建议和分析。让我来详细解答...`;
+            }
+            
+            return `感谢您的提问！我是${agent.name}，${agent.role}。针对您的问题，我认为需要从多个角度来分析。让我为您提供一些建议...`;
+        }
+        
+        initGroupChat();
+        
+        // API设置功能
+        let apiSettings = {
+            type: 'openai',
+            apiKey: '',
+            endpoint: 'https://api.openai.com/v1/chat/completions',
+            model: 'gpt-4o',
+            maxTokens: 2048,
+            temperature: 0.7
+        };
+        
+        function initAPISettings() {
+            loadAPISettings();
+            
+            document.getElementById('open-api-settings').addEventListener('click', showAPISettings);
+            document.getElementById('close-api-settings').addEventListener('click', hideAPISettings);
+            document.getElementById('cancel-api-settings').addEventListener('click', hideAPISettings);
+            document.getElementById('save-api-settings').addEventListener('click', saveAPISettings);
+            document.getElementById('test-api-btn').addEventListener('click', testAPIConnection);
+            document.getElementById('api-show-key').addEventListener('change', toggleShowAPIKey);
+            document.getElementById('api-type').addEventListener('change', updateEndpointPlaceholder);
+            
+            updateAPIStatusBar();
+        }
+        
+        function loadAPISettings() {
+            const saved = localStorage.getItem('aiLegionAPISettings');
+            if (saved) {
+                try {
+                    apiSettings = JSON.parse(saved);
+                    document.getElementById('api-type').value = apiSettings.type;
+                    document.getElementById('api-key').value = apiSettings.apiKey;
+                    document.getElementById('api-endpoint').value = apiSettings.endpoint;
+                    document.getElementById('api-model').value = apiSettings.model;
+                    document.getElementById('api-max-tokens').value = apiSettings.maxTokens;
+                    document.getElementById('api-temperature').value = apiSettings.temperature;
+                } catch (e) {
+                    console.error('Failed to load API settings:', e);
+                }
+            }
+        }
+        
+        function saveAPISettings() {
+            apiSettings.type = document.getElementById('api-type').value;
+            apiSettings.apiKey = document.getElementById('api-key').value;
+            apiSettings.endpoint = document.getElementById('api-endpoint').value;
+            apiSettings.model = document.getElementById('api-model').value;
+            apiSettings.maxTokens = parseInt(document.getElementById('api-max-tokens').value) || 2048;
+            apiSettings.temperature = parseFloat(document.getElementById('api-temperature').value) || 0.7;
+            
+            localStorage.setItem('aiLegionAPISettings', JSON.stringify(apiSettings));
+            hideAPISettings();
+            updateAPIStatusBar();
+            showNotification('API设置已保存', 'success');
+        }
+        
+        function showAPISettings() {
+            document.getElementById('api-settings-modal').classList.remove('hidden');
+            updateEndpointPlaceholder();
+        }
+        
+        function hideAPISettings() {
+            document.getElementById('api-settings-modal').classList.add('hidden');
+        }
+        
+        function updateEndpointPlaceholder() {
+            const type = document.getElementById('api-type').value;
+            const endpointInput = document.getElementById('api-endpoint');
+            const container = document.getElementById('api-endpoint-container');
+            const doubaoContainer = document.getElementById('doubao-credentials');
+            
+            switch (type) {
+                case 'openai':
+                    endpointInput.placeholder = 'https://api.openai.com/v1/chat/completions';
+                    container.classList.remove('hidden');
+                    doubaoContainer.classList.add('hidden');
+                    break;
+                case 'anthropic':
+                    endpointInput.placeholder = 'https://api.anthropic.com/v1/messages';
+                    container.classList.remove('hidden');
+                    doubaoContainer.classList.add('hidden');
+                    break;
+                case 'azure':
+                    endpointInput.placeholder = 'https://{your-resource}.openai.azure.com/openai/deployments/{deployment}/chat/completions?api-version=2024-02-15-preview';
+                    container.classList.remove('hidden');
+                    doubaoContainer.classList.add('hidden');
+                    break;
+                case 'doubao':
+                    endpointInput.placeholder = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+                    container.classList.remove('hidden');
+                    doubaoContainer.classList.remove('hidden');
+                    break;
+                case 'deepseek':
+                    endpointInput.placeholder = 'https://api.deepseek.com/v1/chat/completions';
+                    container.classList.remove('hidden');
+                    doubaoContainer.classList.add('hidden');
+                    break;
+                case 'custom':
+                    container.classList.remove('hidden');
+                    doubaoContainer.classList.add('hidden');
+                    break;
+            }
+        }
+        
+        function toggleShowAPIKey() {
+            const checkbox = document.getElementById('api-show-key');
+            const input = document.getElementById('api-key');
+            input.type = checkbox.checked ? 'text' : 'password';
+        }
+        
+        function updateAPIStatusBar() {
+            const statusBar = document.getElementById('api-status-bar');
+            const statusDot = document.getElementById('api-status-dot');
+            const statusText = document.getElementById('api-status-text');
+            
+            if (apiSettings.apiKey) {
+                statusBar.classList.remove('hidden');
+                statusDot.classList.remove('bg-gray-400', 'bg-red-500');
+                statusDot.classList.add('bg-green-500');
+                statusText.textContent = `${apiSettings.type.toUpperCase()} - ${apiSettings.model}`;
+            } else {
+                statusBar.classList.remove('hidden');
+                statusDot.classList.remove('bg-green-500', 'bg-red-500');
+                statusDot.classList.add('bg-gray-400');
+                statusText.textContent = 'API未配置';
+            }
+        }
+        
+        async function testAPIConnection() {
+            const btn = document.getElementById('test-api-btn');
+            btn.disabled = true;
+            btn.textContent = '测试中...';
+            
+            const testMessage = 'Hello';
+            
+            try {
+                const response = await callAIAPI(testMessage, []);
+                if (response) {
+                    showNotification('API连接成功！', 'success');
+                }
+            } catch (error) {
+                showNotification('API连接失败: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '测试连接';
+            }
+        }
+        
+        async function callAIAPI(messages, systemPrompts = []) {
+            if (!apiSettings.apiKey) {
+                throw new Error('请先配置API Key');
+            }
+            
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            let body = {};
+            
+            switch (apiSettings.type) {
+                case 'openai':
+                    headers['Authorization'] = `Bearer ${apiSettings.apiKey}`;
+                    body = {
+                        model: apiSettings.model,
+                        messages: [
+                            ...systemPrompts.map(p => ({ role: 'system', content: p })),
+                            ...messages
+                        ],
+                        max_tokens: apiSettings.maxTokens,
+                        temperature: apiSettings.temperature
+                    };
+                    break;
+                    
+                case 'anthropic':
+                    headers['x-api-key'] = apiSettings.apiKey;
+                    headers['anthropic-version'] = '2023-06-01';
+                    body = {
+                        model: apiSettings.model || 'claude-3-opus-20240229',
+                        max_tokens: apiSettings.maxTokens,
+                        messages: messages
+                    };
+                    break;
+                    
+                case 'azure':
+                    headers['api-key'] = apiSettings.apiKey;
+                    body = {
+                        messages: [
+                            ...systemPrompts.map(p => ({ role: 'system', content: p })),
+                            ...messages
+                        ],
+                        max_tokens: apiSettings.maxTokens,
+                        temperature: apiSettings.temperature
+                    };
+                    break;
+                    
+                case 'doubao':
+                    return await callDoubaoAPI(messages, systemPrompts, {
+                        apiKey: apiSettings.apiKey,
+                        accessKey: apiSettings.accessKey,
+                        secretKey: apiSettings.secretKey,
+                        region: apiSettings.region,
+                        endpoint: apiSettings.endpoint,
+                        model: apiSettings.model,
+                        maxTokens: apiSettings.maxTokens,
+                        temperature: apiSettings.temperature
+                    });
+                    
+                case 'deepseek':
+                    headers['Authorization'] = `Bearer ${apiSettings.apiKey}`;
+                    body = {
+                        model: apiSettings.model || 'deepseek-chat',
+                        messages: [
+                            ...systemPrompts.map(p => ({ role: 'system', content: p })),
+                            ...messages
+                        ],
+                        max_tokens: apiSettings.maxTokens,
+                        temperature: apiSettings.temperature
+                    };
+                    break;
+                    
+                case 'custom':
+                    headers['Authorization'] = `Bearer ${apiSettings.apiKey}`;
+                    body = {
+                        model: apiSettings.model,
+                        messages: [
+                            ...systemPrompts.map(p => ({ role: 'system', content: p })),
+                            ...messages
+                        ],
+                        max_tokens: apiSettings.maxTokens,
+                        temperature: apiSettings.temperature
+                    };
+                    break;
+            }
+            
+            const response = await fetch(apiSettings.endpoint, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error?.message || `API请求失败: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (apiSettings.type === 'anthropic') {
+                return data.content?.[0]?.text || '';
+            }
+            
+            return data.choices?.[0]?.message?.content || '';
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-4 py-2 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            } text-white`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        let deptAPISettings = {};
+        
+        const deptAgents = ['luna', 'milo', 'zoe', 'kai', 'recipe-dev', 'taste-test', 'packaging-design', 'market-research', 'brand-strategy', 'channel-promotion', 'food-safety', 'label-compliance', 'quality-control'];
+        
+        function getDeptColorClass(color) {
+            const colorMap = {
+                'purple': 'border-purple-500',
+                'blue': 'border-blue-500',
+                'pink': 'border-pink-500',
+                'orange': 'border-orange-500',
+                'green': 'border-green-500',
+                'red': 'border-red-500',
+                'yellow': 'border-yellow-500',
+                'teal': 'border-teal-500',
+                'fuchsia': 'border-fuchsia-500',
+                'indigo': 'border-indigo-500'
+            };
+            return colorMap[color] || 'border-gray-500';
+        }
+        
+        function loadDeptAPISettings() {
+            const saved = localStorage.getItem('aiLegionDeptAPISettings');
+            if (saved) {
+                try {
+                    deptAPISettings = JSON.parse(saved);
+                } catch (e) {
+                    deptAPISettings = {};
+                }
+            }
+        }
+        
+        function saveDeptAPISettingsToStorage() {
+            localStorage.setItem('aiLegionDeptAPISettings', JSON.stringify(deptAPISettings));
+        }
+        
+        function showDeptAPIPanel() {
+            loadDeptAPISettings();
+            renderDeptAPICards();
+            document.getElementById('dept-api-panel').classList.remove('hidden');
+        }
+        
+        function hideDeptAPIPanel() {
+            document.getElementById('dept-api-panel').classList.add('hidden');
+        }
+        
+        function renderDeptAPICards() {
+            const container = document.getElementById('dept-api-cards');
+            container.innerHTML = '';
+            
+            deptAgents.forEach(agentId => {
+                const agent = agents[agentId];
+                if (!agent) return;
+                
+                const settings = deptAPISettings[agentId] || {};
+                const isEnabled = settings.enabled;
+                const colorClass = getDeptColorClass(agent.color);
+                
+                const cardHtml = `
+                    <div class="bg-white rounded-lg shadow-card p-4 border-l-4 ${colorClass} hover:shadow-card-hover transition-shadow">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <img src="${agent.avatar}" alt="${agent.name}" class="w-10 h-10 rounded-full object-cover">
+                                <div class="ml-3">
+                                    <h3 class="font-medium text-gray-800">${agent.name}</h3>
+                                    <p class="text-xs text-gray-500">${agent.role}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs ${isEnabled ? 'text-green-600 font-medium' : 'text-gray-400'}">
+                                    ${isEnabled ? '<i class="fa fa-check-circle"></i> 已启用' : '<i class="fa fa-minus-circle"></i> 未配置'}
+                                </span>
+                                <button class="edit-dept-api-btn px-3 py-1 bg-${agent.color} text-white text-xs rounded hover:opacity-90 transition-opacity" data-agent-id="${agentId}">
+                                    <i class="fa fa-cog mr-1"></i>配置
+                                </button>
+                            </div>
+                        </div>
+                        ${isEnabled ? `
+                            <div class="text-xs text-gray-500 space-y-1 bg-gray-50 p-2 rounded">
+                                <p><span class="font-medium">模型:</span> ${settings.model || 'gpt-4o'}</p>
+                                <p><span class="font-medium">API:</span> ${settings.type} ${settings.endpoint ? '(' + settings.endpoint.substring(0, 25) + '...)' : ''}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', cardHtml);
+            });
+            
+            document.querySelectorAll('.edit-dept-api-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const agentId = this.getAttribute('data-agent-id');
+                    showDeptAPIEditModal(agentId);
+                });
+            });
+        }
+        
+        function showDeptAPIEditModal(agentId) {
+            const agent = agents[agentId];
+            if (!agent) return;
+            
+            const settings = deptAPISettings[agentId] || {};
+            
+            document.getElementById('dept-api-agent-id').value = agentId;
+            document.getElementById('dept-api-modal-title').textContent = `${agent.name} - API配置`;
+            document.getElementById('dept-use-custom-api').checked = settings.enabled || false;
+            document.getElementById('dept-api-type').value = settings.type || 'openai';
+            document.getElementById('dept-api-key').value = settings.apiKey || '';
+            document.getElementById('dept-api-endpoint').value = settings.endpoint || 'https://api.openai.com/v1/chat/completions';
+            
+            const modelSelect = document.getElementById('dept-api-model-select');
+            if (modelSelect) {
+                modelSelect.value = settings.model || 'gpt-4o';
+            }
+            
+            document.getElementById('dept-api-max-tokens').value = settings.maxTokens || 2048;
+            document.getElementById('dept-api-temperature').value = settings.temperature || 0.7;
+            document.getElementById('dept-system-prompt').value = settings.systemPrompt || '';
+            
+            const accessKeyInput = document.getElementById('dept-api-access-key');
+            const secretKeyInput = document.getElementById('dept-api-secret-key');
+            const regionInput = document.getElementById('dept-api-region');
+            if (accessKeyInput) accessKeyInput.value = settings.accessKey || '';
+            if (secretKeyInput) secretKeyInput.value = settings.secretKey || '';
+            if (regionInput) regionInput.value = settings.region || 'cn-beijing';
+            
+            toggleDeptCustomAPI();
+            updateDeptEndpointPlaceholder();
+            
+            document.getElementById('dept-api-edit-modal').classList.remove('hidden');
+        }
+        
+        function hideDeptAPIModal() {
+            document.getElementById('dept-api-edit-modal').classList.add('hidden');
+        }
+        
+        function toggleDeptCustomAPI() {
+            const enabled = document.getElementById('dept-use-custom-api').checked;
+            const inputs = ['dept-api-type', 'dept-api-key', 'dept-api-endpoint', 'dept-api-model-select', 'dept-api-max-tokens', 'dept-api-temperature', 'dept-system-prompt', 'dept-api-access-key', 'dept-api-secret-key', 'dept-api-region'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = !enabled;
+            });
+        }
+        
+        function updateDeptEndpointPlaceholder() {
+            const type = document.getElementById('dept-api-type').value;
+            const endpointInput = document.getElementById('dept-api-endpoint');
+            const doubaoContainer = document.getElementById('dept-doubao-region-container');
+            const hintElement = document.getElementById('dept-endpoint-hint');
+            
+            switch (type) {
+                case 'openai':
+                    endpointInput.placeholder = 'https://api.openai.com/v1/chat/completions';
+                    hintElement.textContent = '';
+                    doubaoContainer.classList.add('hidden');
+                    break;
+                case 'anthropic':
+                    endpointInput.placeholder = 'https://api.anthropic.com/v1/messages';
+                    hintElement.textContent = '';
+                    doubaoContainer.classList.add('hidden');
+                    break;
+                case 'azure':
+                    endpointInput.placeholder = 'https://{resource}.openai.azure.com/openai/deployments/{deployment}/chat/completions';
+                    hintElement.textContent = '';
+                    doubaoContainer.classList.add('hidden');
+                    break;
+                case 'doubao':
+                    endpointInput.placeholder = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+                    hintElement.textContent = '豆包API: https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+                    doubaoContainer.classList.remove('hidden');
+                    break;
+                case 'deepseek':
+                    endpointInput.placeholder = 'https://api.deepseek.com/v1/chat/completions';
+                    hintElement.textContent = 'DeepSeek API: https://api.deepseek.com/v1/chat/completions';
+                    doubaoContainer.classList.add('hidden');
+                    break;
+                default:
+                    endpointInput.placeholder = 'https://api.example.com/v1/chat/completions';
+                    hintElement.textContent = '';
+                    doubaoContainer.classList.add('hidden');
+            }
+        }
+        
+        function saveDeptAPISettings() {
+            const agentId = document.getElementById('dept-api-agent-id').value;
+            const modelSelect = document.getElementById('dept-api-model-select');
+            
+            deptAPISettings[agentId] = {
+                enabled: document.getElementById('dept-use-custom-api').checked,
+                type: document.getElementById('dept-api-type').value,
+                apiKey: document.getElementById('dept-api-key').value,
+                endpoint: document.getElementById('dept-api-endpoint').value,
+                model: modelSelect ? modelSelect.value : 'gpt-4o',
+                maxTokens: parseInt(document.getElementById('dept-api-max-tokens').value) || 2048,
+                temperature: parseFloat(document.getElementById('dept-api-temperature').value) || 0.7,
+                systemPrompt: document.getElementById('dept-system-prompt').value,
+                accessKey: document.getElementById('dept-api-access-key')?.value || '',
+                secretKey: document.getElementById('dept-api-secret-key')?.value || '',
+                region: document.getElementById('dept-api-region')?.value || 'cn-beijing'
+            };
+            
+            saveDeptAPISettingsToStorage();
+            hideDeptAPIModal();
+            renderDeptAPICards();
+            showNotification('部门API设置已保存', 'success');
+        }
+        
+        function getAgentAPISettings(agentId) {
+            return deptAPISettings[agentId] || null;
+        }
+        
+        async function callDeptAPI(messages, systemPrompts = [], settings) {
+            if (!settings.enabled) {
+                return null;
+            }
+            
+            const headers = {};
+            let body = {};
+            
+            switch (settings.type) {
+                case 'openai':
+                    headers['Authorization'] = `Bearer ${settings.apiKey}`;
+                    body = {
+                        model: settings.model || 'gpt-4o',
+                        messages: [
+                            ...systemPrompts.map(p => ({ role: 'system', content: p })),
+                            ...messages
+                        ],
+                        max_tokens: settings.maxTokens,
+                        temperature: settings.temperature
+                    };
+                    break;
+                case 'anthropic':
+                    headers['x-api-key'] = settings.apiKey;
+                    headers['anthropic-version'] = '2023-06-01';
+                    body = {
+                        model: settings.model || 'claude-3-sonnet-20240229',
+                        max_tokens: settings.maxTokens || 1024,
+                        temperature: settings.temperature || 0.7,
+                        system: systemPrompts.join('\n'),
+                        messages: messages
+                    };
+                    break;
+                case 'azure':
+                    headers['api-key'] = settings.apiKey;
+                    body = {
+                        messages: [
+                            ...systemPrompts.map(p => ({ role: 'system', content: p })),
+                            ...messages
+                        ],
+                        max_tokens: settings.maxTokens,
+                        temperature: settings.temperature
+                    };
+                    break;
+                case 'doubao':
+                    return await callDoubaoAPI(messages, systemPrompts, settings);
+                case 'deepseek':
+                    headers['Authorization'] = `Bearer ${settings.apiKey}`;
+                    body = {
+                        model: settings.model || 'deepseek-chat',
+                        messages: [
+                            ...systemPrompts.map(p => ({ role: 'system', content: p })),
+                            ...messages
+                        ],
+                        max_tokens: settings.maxTokens,
+                        temperature: settings.temperature
+                    };
+                    break;
+                default:
+                    headers['Authorization'] = `Bearer ${settings.apiKey}`;
+                    body = {
+                        model: settings.model,
+                        messages: [
+                            ...systemPrompts.map(p => ({ role: 'system', content: p })),
+                            ...messages
+                        ],
+                        max_tokens: settings.maxTokens,
+                        temperature: settings.temperature
+                    };
+            }
+            
+            const response = await fetch(settings.endpoint, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(body)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error?.message || `API请求失败: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (settings.type === 'anthropic') {
+                return data.content?.[0]?.text || '';
+            }
+            
+            return data.choices?.[0]?.message?.content || '';
+        }
+        
+        function initDeptAPISettings() {
+            loadDeptAPISettings();
+            
+            document.getElementById('dept-api-settings-btn')?.addEventListener('click', showDeptAPIPanel);
+            document.getElementById('close-dept-api')?.addEventListener('click', hideDeptAPIPanel);
+            document.getElementById('close-dept-api-btn')?.addEventListener('click', hideDeptAPIPanel);
+            document.getElementById('close-dept-api-edit')?.addEventListener('click', hideDeptAPIModal);
+            document.getElementById('cancel-dept-api')?.addEventListener('click', hideDeptAPIModal);
+            document.getElementById('save-dept-api')?.addEventListener('click', saveDeptAPISettings);
+            document.getElementById('dept-use-custom-api')?.addEventListener('change', toggleDeptCustomAPI);
+            document.getElementById('dept-api-type')?.addEventListener('change', updateDeptEndpointPlaceholder);
+        }
+        
+        function getAWSV4Signature(accessKey, secretKey, region, serviceName, method, uri, payload, timestamp) {
+            const now = timestamp || new Date();
+            const dateStr = now.toISOString().split('T')[0].replace(/-/g, '');
+            const amzDate = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            
+            const hashedPayload = CryptoJS.SHA256(payload).toString(CryptoJS.enc.Hex);
+            
+            const canonicalUri = uri.split('?')[0];
+            const canonicalQueryString = uri.split('?')[1] || '';
+            
+            const canonicalHeaders = `content-type:application/json\nhost:ark.cn-beijing.volces.com\nx-amz-date:${amzDate}\nx-amz-target:StreamChat.ChatCompletion\n`;
+            const signedHeaders = 'content-type;host;x-amz-date;x-amz-target';
+            
+            const canonicalRequest = [
+                method,
+                canonicalUri,
+                canonicalQueryString,
+                canonicalHeaders,
+                signedHeaders,
+                hashedPayload
+            ].join('\n');
+            
+            const algorithm = 'AWS4-HMAC-SHA256';
+            const credentialScope = `${dateStr}/${region}/${serviceName}/aws4_request`;
+            
+            const stringToSign = [
+                algorithm,
+                amzDate,
+                credentialScope,
+                CryptoJS.SHA256(canonicalRequest).toString(CryptoJS.enc.Hex)
+            ].join('\n');
+            
+            const kDate = CryptoJS.HmacSHA256(dateStr, 'AWS4' + secretKey);
+            const kRegion = CryptoJS.HmacSHA256(region, kDate);
+            const kService = CryptoJS.HmacSHA256(serviceName, kRegion);
+            const kSigning = CryptoJS.HmacSHA256('aws4_request', kService);
+            
+            const signature = CryptoJS.HmacSHA256(stringToSign, kSigning).toString(CryptoJS.enc.Hex);
+            
+            const authorizationHeader = `${algorithm} Credential=${accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+            
+            return {
+                'Content-Type': 'application/json',
+                'X-Amz-Date': amzDate,
+                'X-Amz-Target': 'StreamChat.ChatCompletion',
+                'Authorization': authorizationHeader
+            };
+        }
+        
+        async function callDoubaoAPI(messages, systemPrompts = [], settings) {
+            const accessKey = settings.accessKey || settings.apiKey;
+            const secretKey = settings.secretKey || '';
+            const region = settings.region || 'cn-beijing';
+            
+            if (!accessKey || !secretKey) {
+                throw new Error('请配置豆包API的Access Key和Secret Key');
+            }
+            
+            const endpoint = settings.endpoint || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+            const url = new URL(endpoint);
+            const uri = url.pathname + (url.search || '');
+            
+            const body = {
+                model: settings.model || 'doubao-3-8k',
+                messages: [
+                    ...systemPrompts.map(p => ({ role: 'system', content: p })),
+                    ...messages
+                ],
+                max_tokens: settings.maxTokens || 2048,
+                temperature: settings.temperature || 0.7,
+                stream: false
+            };
+            
+            const payload = JSON.stringify(body);
+            const headers = getAWSV4Signature(accessKey, secretKey, region, 'ark', 'POST', uri, payload);
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: headers,
+                body: payload
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error?.message || `API请求失败: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.choices?.[0]?.message?.content || '';
+        }
+        
+        // ==================== 用户认证系统 ====================
+        let chatHistory = [];
+        const MAX_HISTORY = 100;
+        
+        function addToChatHistory(role, content, agentName = null) {
+            chatHistory.push({
+                role: role,
+                content: content,
+                agentName: agentName,
+                timestamp: Date.now()
+            });
+            if (chatHistory.length > MAX_HISTORY) {
+                chatHistory = chatHistory.slice(-MAX_HISTORY);
+            }
+        }
+        
+        function saveChatHistory() {
+            const user = getCurrentUser();
+            if (user) {
+                saveCurrentUserData();
+            }
+        }
+        
+        function clearChatHistory() {
+            chatHistory = [];
+            saveChatHistory();
+        }
+        
+        const AUTH_KEY = 'aiLegionUsers';
+        const CURRENT_USER_KEY = 'aiLegionCurrentUser';
+        
+        function getUsers() {
+            const users = localStorage.getItem(AUTH_KEY);
+            return users ? JSON.parse(users) : {};
+        }
+        
+        function saveUsers(users) {
+            localStorage.setItem(AUTH_KEY, JSON.stringify(users));
+        }
+        
+        function getCurrentUser() {
+            const user = localStorage.getItem(CURRENT_USER_KEY);
+            return user ? JSON.parse(user) : null;
+        }
+        
+        function setCurrentUser(user) {
+            if (user) {
+                localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+            } else {
+                localStorage.removeItem(CURRENT_USER_KEY);
+            }
+        }
+        
+        function hashPassword(password) {
+            let hash = 0;
+            for (let i = 0; i < password.length; i++) {
+                const char = password.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return hash.toString(16);
+        }
+        
+        function showAuthModal() {
+            document.getElementById('auth-modal').classList.remove('hidden');
+        }
+        
+        function hideAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+        
+        function showAuthError(message) {
+            const errorEl = document.getElementById('auth-error');
+            errorEl.textContent = message;
+            errorEl.classList.remove('hidden');
+            setTimeout(() => errorEl.classList.add('hidden'), 3000);
+        }
+        
+        function switchToLogin() {
+            document.getElementById('login-tab').classList.add('text-primary', 'border-b-2', 'border-primary');
+            document.getElementById('login-tab').classList.remove('text-gray-400');
+            document.getElementById('register-tab').classList.remove('text-primary', 'border-b-2', 'border-primary');
+            document.getElementById('register-tab').classList.add('text-gray-400');
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('auth-error').classList.add('hidden');
+        }
+        
+        function switchToRegister() {
+            document.getElementById('register-tab').classList.add('text-primary', 'border-b-2', 'border-primary');
+            document.getElementById('register-tab').classList.remove('text-gray-400');
+            document.getElementById('login-tab').classList.remove('text-primary', 'border-b-2', 'border-primary');
+            document.getElementById('login-tab').classList.add('text-gray-400');
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('auth-error').classList.add('hidden');
+        }
+        
+        function handleRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('register-username').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+            
+            if (username.length < 4 || username.length > 20) {
+                showAuthError('用户名需要4-20个字符');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showAuthError('密码至少需要6个字符');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showAuthError('两次输入的密码不一致');
+                return;
+            }
+            
+            const users = getUsers();
+            if (users[username]) {
+                showAuthError('用户名已存在');
+                return;
+            }
+            
+            users[username] = {
+                password: hashPassword(password),
+                createdAt: Date.now(),
+                chatHistory: [],
+                apiSettings: {},
+                deptAPISettings: {}
+            };
+            saveUsers(users);
+            
+            setCurrentUser({ username: username, loginAt: Date.now() });
+            hideAuthModal();
+            updateUserUI();
+            showNotification('注册成功！欢迎 ' + username, 'success');
+        }
+        
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            
+            const users = getUsers();
+            const user = users[username];
+            
+            if (!user || user.password !== hashPassword(password)) {
+                showAuthError('用户名或密码错误');
+                return;
+            }
+            
+            setCurrentUser({ username: username, loginAt: Date.now() });
+            hideAuthModal();
+            updateUserUI();
+            
+            loadUserData(username);
+            showNotification('登录成功！欢迎回来 ' + username, 'success');
+        }
+        
+        function handleLogout() {
+            saveCurrentUserData();
+            setCurrentUser(null);
+            document.getElementById('user-menu').classList.add('hidden');
+            document.getElementById('auth-modal').classList.remove('hidden');
+            switchToLogin();
+            showNotification('已退出登录', 'info');
+        }
+        
+        function updateUserUI() {
+            const user = getCurrentUser();
+            if (user) {
+                document.getElementById('user-menu').classList.remove('hidden');
+                document.getElementById('current-username').textContent = user.username;
+                document.getElementById('dropdown-username').textContent = user.username;
+            } else {
+                document.getElementById('user-menu').classList.add('hidden');
+            }
+        }
+        
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('user-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+        
+        function loadUserData(username) {
+            const users = getUsers();
+            const user = users[username];
+            if (user) {
+                if (user.apiSettings) {
+                    Object.assign(apiSettings, user.apiSettings);
+                }
+                if (user.deptAPISettings) {
+                    Object.assign(deptAPISettings, user.deptAPISettings);
+                }
+                if (user.chatHistory) {
+                    chatHistory = user.chatHistory || [];
+                }
+            }
+        }
+        
+        function saveCurrentUserData() {
+            const user = getCurrentUser();
+            if (!user) return;
+            
+            const users = getUsers();
+            if (!users[user.username]) {
+                users[user.username] = { chatHistory: [], apiSettings: {}, deptAPISettings: {} };
+            }
+            
+            users[user.username].chatHistory = chatHistory;
+            users[user.username].apiSettings = apiSettings;
+            users[user.username].deptAPISettings = deptAPISettings;
+            saveUsers(users);
+        }
+        
+        function initAuth() {
+            const user = getCurrentUser();
+            if (user) {
+                loadUserData(user.username);
+                updateUserUI();
+            } else {
+                showAuthModal();
+            }
+            
+            document.getElementById('login-tab').addEventListener('click', switchToLogin);
+            document.getElementById('register-tab').addEventListener('click', switchToRegister);
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('register-form').addEventListener('submit', handleRegister);
+            document.getElementById('user-menu-btn').addEventListener('click', toggleUserDropdown);
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+            
+            document.addEventListener('click', function(e) {
+                const menu = document.getElementById('user-menu');
+                const dropdown = document.getElementById('user-dropdown');
+                if (!menu.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+        
+        initAPISettings();
+        initDeptAPISettings();
+        initAuth();
+</body>
+</html>

@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>硅基公司 - 儿童零食AI军团</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10B981', // 健康绿色
+                        secondary: '#8B5CF6', // 紫色 - Luna
+                        tertiary: '#3B82F6', // 蓝色 - Milo
+                        accent: '#EC4899', // 粉色 - Zoe
+                        warning: '#F59E0B', // 橙色 - Kai
+                        'recipe-dev': '#10B981', // 绿色 - 配方研发
+                        'taste-test': '#EF4444', // 红色 - 口感测试
+                        'packaging-design': '#F59E0B', // 黄色 - 包装设计
+                        'market-research': '#14B8A6', // 青色 - 市场调研
+                        'brand-strategy': '#D946EF', // 洋红色 - 品牌策划
+                        'channel-promotion': '#6366F1', // 靛蓝色 - 渠道推广
+                        'food-safety': '#22C55E', // 绿色 - 食品安全合规
+                        'label-compliance': '#FACC15', // 黄色 - 标签合规
+                        'quality-control': '#EF4444', // 红色 - 质量检测
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .transition-all-300 {
+                transition: all 300ms ease-in-out;
+            }
+            .agent-node {
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+            .agent-node:active {
+                transform: scale(0.98);
+            }
+            .message-bubble {
+                position: relative;
+                border-radius: 1rem;
+                max-width: 80%;
+                word-wrap: break-word;
+            }
+            .message-bubble.user {
+                border-bottom-right-radius: 0.25rem;
+            }
+            .message-bubble.ai {
+                border-bottom-left-radius: 0.25rem;
+            }
+            .typing-indicator {
+                display: inline-flex;
+                align-items: center;
+            }
+            .typing-indicator span {
+                height: 8px;
+                width: 8px;
+                margin: 0 1px;
+                background-color: #3B82F6;
+                border-radius: 50%;
+                display: inline-block;
+                animation: bounce 1.4s infinite ease-in-out both;
+            }
+            .typing-indicator span:nth-child(1) {
+                animation-delay: -0.32s;
+            }
+            .typing-indicator span:nth-child(2) {
+                animation-delay: -0.16s;
+            }
+            @keyframes bounce {
+                0%, 80%, 100% { transform: scale(0); }
+                40% { transform: scale(1); }
+            }
+            .tab-active {
+                border-bottom: 2px solid theme('colors.primary');
+                color: theme('colors.primary');
+            }
+            .slide-in {
+                animation: slideIn 0.3s ease forwards;
+            }
+            @keyframes slideIn {
+                from { transform: translateX(100%); }
+                to { transform: translateX(0); }
+            }
+            .slide-out {
+                animation: slideOut 0.3s ease forwards;
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); }
+                to { transform: translateX(100%); }
+            }
+            .fade-in {
+                animation: fadeIn 0.3s ease forwards;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            .fade-out {
+                animation: fadeOut 0.3s ease forwards;
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm z-10">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                    <i class="fa fa-leaf text-white text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-gray-800">硅基公司</h1>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button id="new-project-btn" class="px-3 py-1 bg-primary text-white text-sm rounded-md hover:bg-primary/90 transition-all-300 flex items-center">
+                    <i class="fa fa-plus mr-1"></i> 新建
+                </button>
+                <div class="relative">
+                    <button id="user-btn" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition-all-300">
+                        <i class="fa fa-user text-gray-600"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 标签页导航 -->
+        <div class="flex border-b border-gray-200">
+            <button id="tab-chat" class="flex-1 py-3 text-center text-sm font-medium tab-active">
+                <i class="fa fa-comments mr-1"></i> 对话
+            </button>
+            <button id="tab-agents" class="flex-1 py-3 text-center text-sm font-medium text-gray-500">
+                <i class="fa fa-users mr-1"></i> AI军团
+            </button>
+            <button id="tab-tasks" class="flex-1 py-3 text-center text-sm font-medium text-gray-500">
+                <i class="fa fa-tasks mr-1"></i> 任务
+            </button>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="flex-1 overflow-hidden relative">
+        <!-- 对话页面 -->
+        <div id="page-chat" class="h-full flex flex-col">
+            <!-- 对话历史 -->
+            <div class="flex-1 p-4 overflow-y-auto" id="chat-messages">
+                <!-- 欢迎消息 -->
+                <div class="flex mb-4">
+                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a526161dc3a44703be086d833b7079d0~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=7DqXvLEzPGC9u5LCSArcHAgAcRU%3D" alt="Luna" class="w-8 h-8 rounded-full object-cover">
+                    <div class="ml-2">
+                        <div class="flex items-center">
+                            <span class="font-medium text-gray-800 text-sm">Luna</span>
+                            <span class="text-xs text-gray-500 ml-2">中枢首席执行官</span>
+                        </div>
+                        <div class="message-bubble ai bg-blue-50 p-3 mt-1">
+                            <p class="text-gray-700 text-sm">您好！我是Luna，硅基公司的中枢首席执行官。我们的AI军团已准备好协助您开发健康、安全、趣味的儿童零食产品。请告诉我您的需求，我将协调团队为您提供专业支持。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 输入区域 -->
+            <div class="p-3 border-t border-gray-100 bg-white">
+                <div class="flex items-center">
+                    <input type="text" id="message-input" class="flex-1 border border-gray-300 rounded-l-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm" placeholder="输入您的需求...">
+                    <button id="send-button" class="bg-primary text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-primary/90 transition-all-300">
+                        <i class="fa fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div class="flex justify-between mt-2 px-1">
+                    <div class="flex space-x-2">
+                        <button id="quick-question-1" class="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600 hover:bg-gray-200 transition-all-300">健康零食配方</button>
+                        <button id="quick-question-2" class="text-xs bg-gray-100 px-2 py-1 rounded-full text-gray-600 hover:bg-gray-200 transition-all-300">市场趋势</button>
+                    </div>
+                    <button id="context-button" class="text-xs text-primary flex items-center">
+                        <i class="fa fa-history mr-1"></i> 上下文
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI军团页面 -->
+        <div id="page-agents" class="h-full overflow-y-auto hidden">
+            <div class="p-4">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">AI军团架构</h2>
+                
+                <!-- 中枢首席执行官 -->
+                <div class="mb-4">
+                    <div class="agent-node flex items-center p-3 bg-secondary/10 rounded-lg border-l-4 border-secondary" data-agent-id="luna">
+                        <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a526161dc3a44703be086d833b7079d0~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=7DqXvLEzPGC9u5LCSArcHAgAcRU%3D" alt="Luna" class="w-10 h-10 rounded-full object-cover">
+                        <div class="ml-3 flex-1">
+                            <h3 class="font-medium text-gray-800">Luna</h3>
+                            <p class="text-xs text-gray-500">中枢首席执行官</p>
+                        </div>
+                        <i class="fa fa-chevron-down text-gray-400 transition-transform"></i>
+                    </div>
+                    
+                    <!-- 子节点 -->
+                    <div class="ml-4 mt-2 space-y-3">
+                        <!-- 产品研发总监 -->
+                        <div class="agent-node flex items-center p-3 bg-tertiary/10 rounded-lg border-l-4 border-tertiary" data-agent-id="milo">
+                            <img src="https://p9-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/4abc1fe44c4f4cd38f4e0eca8a3f3f6a~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=Vo1nPAAhUrQJ%2BRJlCY0H1t2HtFU%3D" alt="Milo" class="w-8 h-8 rounded-full object-cover">
+                            <div class="ml-2 flex-1">
+                                <h3 class="font-medium text-gray-800">Milo</h3>
+                                <p class="text-xs text-gray-500">产品研发总监</p>
+                            </div>
+                            <i class="fa fa-chevron-right text-gray-400"></i>
+                        </div>
+                        
+                        <!-- 市场运营总监 -->
+                        <div class="agent-node flex items-center p-3 bg-accent/10 rounded-lg border-l-4 border-accent" data-agent-id="zoe">
+                            <img src="https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1e87337a26124a3aa7d62b81c5b55d9a~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=VN2RSLIKq695LdGg8%2BwvZMXIDkw%3D" alt="Zoe" class="w-8 h-8 rounded-full object-cover">
+                            <div class="ml-2 flex-1">
+                                <h3 class="font-medium text-gray-800">Zoe</h3>
+                                <p class="text-xs text-gray-500">市场运营总监</p>
+                            </div>
+                            <i class="fa fa-chevron-right text-gray-400"></i>
+                        </div>
+                        
+                        <!-- 合规质量总监 -->
+                        <div class="agent-node flex items-center p-3 bg-warning/10 rounded-lg border-l-4 border-warning" data-agent-id="kai">
+                            <img src="https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8d14fe5ccd7c4ccb913e6de8ea4670fe~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=I6ooq1f90FoKPG4GyfO1OWChp2U%3D" alt="Kai" class="w-8 h-8 rounded-full object-cover">
+                            <div class="ml-2 flex-1">
+                                <h3 class="font-medium text-gray-800">Kai</h3>
+                                <p class="text-xs text-gray-500">合规质量总监</p>
+                            </div>
+                            <i class="fa fa-chevron-right text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 任务页面 -->
+        <div id="page-tasks" class="h-full overflow-y-auto hidden">
+            <div class="p-4">
+                <h2 class="text-lg font-semibold text-gray-800 mb-4">任务流程</h2>
+                
+                <!-- 任务列表 -->
+                <div class="space-y-3">
+                    <!-- 任务1：需求分析 -->
+                    <div class="bg-white rounded-lg shadow-sm p-3">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                                <i class="fa fa-check text-green-500"></i>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <h3 class="font-medium text-gray-800">需求分析</h3>
+                                <p class="text-xs text-gray-500 mt-1">分析3-6岁儿童健康零食市场需求</p>
+                            </div>
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">已完成</span>
+                        </div>
+                        <div class="flex items-center mt-2 text-xs text-gray-500">
+                            <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a526161dc3a44703be086d833b7079d0~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=7DqXvLEzPGC9u5LCSArcHAgAcRU%3D" alt="Luna" class="w-5 h-5 rounded-full object-cover">
+                            <span class="ml-1">Luna · 2小时前</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 任务2：市场调研 -->
+                    <div class="bg-white rounded-lg shadow-sm p-3">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                                <i class="fa fa-check text-green-500"></i>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <h3 class="font-medium text-gray-800">市场调研</h3>
+                                <p class="text-xs text-gray-500 mt-1">收集市场趋势和竞争对手分析</p>
+                            </div>
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">已完成</span>
+                        </div>
+                        <div class="flex items-center mt-2 text-xs text-gray-500">
+                            <img src="https://p6-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8b95cec4fdac438391cba1551e259129~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576227&x-signature=41fswaEucmU%2Fstnj5Ot4oPV5Log%3D" alt="市场调研" class="w-5 h-5 rounded-full object-cover">
+                            <span class="ml-1">市场调研AI · 1小时前</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 任务3：配方研发 -->
+                    <div class="bg-white rounded-lg shadow-sm p-3">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="fa fa-spinner fa-spin text-blue-500"></i>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <h3 class="font-medium text-gray-800">配方研发</h3>
+                                <p class="text-xs text-gray-500 mt-1">开发健康、营养均衡的零食配方</p>
+                            </div>
+                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">进行中</span>
+                        </div>
+                        <div class="flex items-center mt-2 text-xs text-gray-500">
+                            <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/86fef240e04c4c2fbcefaae21b4a5b7b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576208&x-signature=x3ecQxXpq0mBvsa5%2BaWotnaN%2Bww%3D" alt="配方研发" class="w-5 h-5 rounded-full object-cover">
+                            <span class="ml-1">配方研发AI · 30分钟前</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 任务4：包装设计 -->
+                    <div class="bg-white rounded-lg shadow-sm p-3">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                                <i class="fa fa-clock-o text-yellow-500"></i>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <h3 class="font-medium text-gray-800">包装设计</h3>
+                                <p class="text-xs text-gray-500 mt-1">设计吸引儿童且符合安全标准的包装</p>
+                            </div>
+                            <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">待处理</span>
+                        </div>
+                        <div class="flex items-center mt-2 text-xs text-gray-500">
+                            <img src="https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/f7b9ac89656045a587079bbaec6c837b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576203&x-signature=a2nCHV%2FEJSk%2FN44Uqh9oa28ezYs%3D" alt="包装设计" class="w-5 h-5 rounded-full object-cover">
+                            <span class="ml-1">包装设计AI · 未开始</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 任务5：合规检查 -->
+                    <div class="bg-white rounded-lg shadow-sm p-3">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
+                                <i class="fa fa-clock-o text-yellow-500"></i>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <h3 class="font-medium text-gray-800">合规检查</h3>
+                                <p class="text-xs text-gray-500 mt-1">确保产品符合食品安全和标签法规</p>
+                            </div>
+                            <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">待处理</span>
+                        </div>
+                        <div class="flex items-center mt-2 text-xs text-gray-500">
+                            <img src="https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8d14fe5ccd7c4ccb913e6de8ea4670fe~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=I6ooq1f90FoKPG4GyfO1OWChp2U%3D" alt="Kai" class="w-5 h-5 rounded-full object-cover">
+                            <span class="ml-1">Kai · 未开始</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 上下文侧边栏 -->
+        <div id="context-sidebar" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-lg z-20 transform translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">对话上下文</h3>
+                <button id="close-context" class="text-gray-400 hover:text-gray-600">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4 h-full overflow-y-auto" id="context-content">
+                <div class="text-sm text-gray-600">
+                    <p class="mb-2 font-medium">当前项目：</p>
+                    <p class="mb-4 text-gray-800">3-6岁儿童健康零食开发</p>
+                    
+                    <p class="mb-2 font-medium">已完成步骤：</p>
+                    <ul class="list-disc list-inside mb-4 text-gray-800">
+                        <li>需求分析</li>
+                        <li>市场调研</li>
+                    </ul>
+                    
+                    <p class="mb-2 font-medium">进行中步骤：</p>
+                    <ul class="list-disc list-inside mb-4 text-gray-800">
+                        <li>配方研发</li>
+                    </ul>
+                    
+                    <p class="mb-2 font-medium">关键信息：</p>
+                    <div class="bg-gray-50 p-3 rounded-lg mb-4">
+                        <p class="text-gray-800">目标人群：3-6岁儿童</p>
+                        <p class="text-gray-800">产品类型：健康零食</p>
+                        <p class="text-gray-800">核心需求：营养均衡、无添加剂、趣味性</p>
+                    </div>
+                    
+                    <p class="mb-2 font-medium">对话历史：</p>
+                    <div class="space-y-3">
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-xs text-gray-500 mb-1">用户 · 10分钟前</p>
+                            <p class="text-gray-800">我需要开发一款适合3-6岁儿童的健康零食</p>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded-lg">
+                            <p class="text-xs text-gray-500 mb-1">Luna · 10分钟前</p>
+                            <p class="text-gray-800">收到需求，我将协调团队进行评估和方案设计。我们的市场调研AI将首先分析当前儿童零食市场趋势。</p>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-xs text-gray-500 mb-1">用户 · 5分钟前</p>
+                            <p class="text-gray-800">我希望零食是营养均衡的，不添加人工色素和防腐剂</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-200">
+                <button id="clear-context" class="w-full py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-all-300">
+                    清除上下文
+                </button>
+            </div>
+        </div>
+
+        <!-- Agent详情模态框 -->
+        <div id="agent-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-30 hidden">
+            <div class="bg-white rounded-lg shadow-lg max-w-md w-full mx-4 overflow-hidden">
+                <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-800" id="modal-title">Agent详情</h3>
+                    <button id="close-modal" class="text-gray-400 hover:text-gray-600">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <div class="p-4" id="modal-content">
+                    <!-- 动态内容 -->
+                </div>
+                <div class="p-4 border-t border-gray-200 flex justify-end">
+                    <button id="contact-agent" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-all-300">
+                        联系此Agent
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Agent数据
+        const agents = {
+            "luna": {
+                name: "Luna",
+                role: "中枢首席执行官",
+                description: "负责需求拆解、任务调度、结果汇总，是整个军团的核心枢纽。",
+                avatar: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a526161dc3a44703be086d833b7079d0~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=7DqXvLEzPGC9u5LCSArcHAgAcRU%3D",
+                color: "secondary",
+                capabilities: [
+                    "需求分析与拆解",
+                    "跨部门任务调度",
+                    "项目进度监控",
+                    "结果汇总与汇报"
+                ],
+                response: "我已收到您的需求，将立即协调相关团队成员进行评估和方案设计。我们将在24小时内为您提供初步方案。"
+            },
+            "milo": {
+                name: "Milo",
+                role: "产品研发总监",
+                description: "统领配方研发、口感测试、包装设计子Agent，负责产品研发全流程。",
+                avatar: "https://p9-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/4abc1fe44c4f4cd38f4e0eca8a3f3f6a~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=Vo1nPAAhUrQJ%2BRJlCY0H1t2HtFU%3D",
+                color: "tertiary",
+                capabilities: [
+                    "产品配方研发",
+                    "口感与风味优化",
+                    "包装设计指导",
+                    "产品成本控制"
+                ],
+                response: "作为产品研发总监，我将带领团队为您开发既健康又美味的儿童零食。我们注重营养均衡和口感体验的完美结合。"
+            },
+            "zoe": {
+                name: "Zoe",
+                role: "市场运营总监",
+                description: "带领市场调研、品牌策划、渠道推广子Agent，负责市场相关工作。",
+                avatar: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1e87337a26124a3aa7d62b81c5b55d9a~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=VN2RSLIKq695LdGg8%2BwvZMXIDkw%3D",
+                color: "accent",
+                capabilities: [
+                    "市场趋势分析",
+                    "品牌策略制定",
+                    "渠道规划与推广",
+                    "消费者行为研究"
+                ],
+                response: "我是市场运营总监Zoe，擅长把握市场趋势和消费者需求。我们的团队将为您的产品制定有效的市场策略和推广方案。"
+            },
+            "kai": {
+                name: "Kai",
+                role: "合规质量总监",
+                description: "管理食品安全合规、标签合规、质量检测子Agent，保障产品合规与质量。",
+                avatar: "https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8d14fe5ccd7c4ccb913e6de8ea4670fe~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=I6ooq1f90FoKPG4GyfO1OWChp2U%3D",
+                color: "warning",
+                capabilities: [
+                    "食品安全法规合规",
+                    "产品标签审核",
+                    "质量控制标准制定",
+                    "生产流程监督"
+                ],
+                response: "我是合规质量总监Kai，确保所有产品符合严格的安全标准和法规要求是我的首要任务。我们将为您的产品提供全面的合规保障。"
+            },
+            "recipe-dev": {
+                name: "配方研发AI",
+                role: "配方研发专员",
+                description: "负责开发健康、营养均衡的儿童零食配方，确保产品符合营养标准。",
+                avatar: "https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/86fef240e04c4c2fbcefaae21b4a5b7b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576208&x-signature=x3ecQxXpq0mBvsa5%2BaWotnaN%2Bww%3D",
+                color: "recipe-dev",
+                capabilities: [
+                    "营养成分分析",
+                    "配方优化与创新",
+                    "原料替代方案",
+                    "成本与营养平衡"
+                ],
+                response: "我是配方研发AI，专注于开发既营养又美味的儿童零食配方。我可以根据您的需求，设计符合特定年龄段营养需求的产品配方。"
+            },
+            "taste-test": {
+                name: "口感测试AI",
+                role: "口感测试专员",
+                description: "负责评估产品的口感、风味和质地，确保产品符合目标年龄段儿童的喜好。",
+                avatar: "https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/d3dcdb8a82e546a6a66c52e5e04a35ae~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576202&x-signature=eRWbRvB2%2FnrYhhNFxeDdg%2BOV8Tw%3D",
+                color: "taste-test",
+                capabilities: [
+                    "口感分析与评估",
+                    "风味调配建议",
+                    "质地优化方案",
+                    "目标人群喜好预测"
+                ],
+                response: "我是口感测试AI，专注于确保零食的口感和风味能受到孩子们的喜爱。我可以提供关于产品质地、味道和口感的专业建议。"
+            },
+            "packaging-design": {
+                name: "包装设计AI",
+                role: "包装设计专员",
+                description: "负责设计既吸引儿童又符合安全标准的产品包装，提升产品吸引力。",
+                avatar: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/f7b9ac89656045a587079bbaec6c837b~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576203&x-signature=a2nCHV%2FEJSk%2FN44Uqh9oa28ezYs%3D",
+                color: "packaging-design",
+                capabilities: [
+                    "包装外观设计",
+                    "安全标准合规",
+                    "环保材料选择",
+                    "品牌元素整合"
+                ],
+                response: "我是包装设计AI，专注于创建既美观又安全的儿童零食包装。我可以设计符合目标年龄段审美且满足安全标准的包装方案。"
+            },
+            "market-research": {
+                name: "市场调研AI",
+                role: "市场调研专员",
+                description: "负责收集和分析市场趋势、竞争对手和消费者需求数据，为产品开发提供依据。",
+                avatar: "https://p6-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8b95cec4fdac438391cba1551e259129~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576227&x-signature=41fswaEucmU%2Fstnj5Ot4oPV5Log%3D",
+                color: "market-research",
+                capabilities: [
+                    "市场趋势分析",
+                    "竞争对手研究",
+                    "消费者需求调研",
+                    "数据可视化报告"
+                ],
+                response: "我是市场调研AI，专注于分析儿童零食市场趋势和消费者需求。我可以为您提供详细的市场分析报告，帮助您了解最新的市场动态。"
+            },
+            "brand-strategy": {
+                name: "品牌策划AI",
+                role: "品牌策划专员",
+                description: "负责制定产品品牌策略、定位和传播方案，提升品牌影响力。",
+                avatar: "https://p26-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/bc0cfe4d702b42b887ba7fb673d1bcce~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576232&x-signature=3D%2F%2FbjaS8%2BDsF6HXz2cyu0GGCaY%3D",
+                color: "brand-strategy",
+                capabilities: [
+                    "品牌定位策略",
+                    "品牌故事创作",
+                    "视觉识别系统设计",
+                    "品牌传播方案"
+                ],
+                response: "我是品牌策划AI，专注于打造有吸引力的儿童零食品牌。我可以帮助您制定独特的品牌定位和有效的传播策略，提升产品的市场竞争力。"
+            },
+            "channel-promotion": {
+                name: "渠道推广AI",
+                role: "渠道推广专员",
+                description: "负责制定和执行产品推广策略，拓展销售渠道，提升产品销量。",
+                avatar: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/76ea77244bff43c6856bbef4f8276a1e~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576227&x-signature=yZc8uTtEKLCWAJn5sMXfM7DskNc%3D",
+                color: "channel-promotion",
+                capabilities: [
+                    "销售渠道规划",
+                    "促销活动策划",
+                    "数字营销方案",
+                    "KOL合作策略"
+                ],
+                response: "我是渠道推广AI，专注于制定有效的产品推广策略和渠道拓展方案。我可以帮助您的产品快速进入市场并获得目标消费者的关注。"
+            },
+            "food-safety": {
+                name: "食品安全合规AI",
+                role: "食品安全合规专员",
+                description: "负责确保产品符合食品安全法规和标准，保障产品安全。",
+                avatar: "https://p3-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1b42a292eee04ab89870752fff086800~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576251&x-signature=PKCAbC308FokWfzWSOg0ngem%2BBs%3D",
+                color: "food-safety",
+                capabilities: [
+                    "食品安全法规解读",
+                    "原料安全评估",
+                    "生产流程审核",
+                    "风险预警分析"
+                ],
+                response: "我是食品安全合规AI，专注于确保产品符合所有相关的食品安全法规和标准。我将帮助您的产品安全合规地进入市场。"
+            },
+            "label-compliance": {
+                name: "标签合规AI",
+                role: "标签合规专员",
+                description: "负责审核产品标签和说明书，确保符合法规要求。",
+                avatar: "https://p11-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1380f8e7498849e3a517e067f413fa42~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576252&x-signature=rfTwAriWV34RshHcYbMhRSCnZ40%3D",
+                color: "label-compliance",
+                capabilities: [
+                    "标签法规审核",
+                    "营养成分标注",
+                    "警示语要求",
+                    "多语言标签支持"
+                ],
+                response: "我是标签合规AI，专注于确保产品标签符合所有法规要求。我可以帮助您审核和优化产品标签，避免因标签问题导致的合规风险。"
+            },
+            "quality-control": {
+                name: "质量检测AI",
+                role: "质量检测专员",
+                description: "负责制定和执行产品质量检测标准，确保产品质量稳定。",
+                avatar: "https://p9-flow-imagex-download-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/1bcb4496e42c44ebb12ae579db1e1fc9~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576251&x-signature=%2F99TLOjvcBEAf4yqEycwBH0EspU%3D",
+                color: "quality-control",
+                capabilities: [
+                    "质量检测标准制定",
+                    "生产过程监控",
+                    "成品质量评估",
+                    "质量改进建议"
+                ],
+                response: "我是质量检测AI，专注于确保产品质量稳定且符合标准。我可以帮助您建立完善的质量控制体系，确保每一批产品都能达到最高标准。"
+            }
+        };
+
+        // 阿里云API配置
+        const aliCloudConfig = {
+            endpoint: 'https://your-endpoint.aliyuncs.com',
+            apiKey: 'your-api-key',
+            apiSecret: 'your-api-secret',
+            apiVersion: '2023-05-15',
+            // 新增：API调用超时设置
+            timeout: 10000,
+            // 新增：重试次数
+            maxRetries: 3
+        };
+
+        // 新增：对话推理引擎配置
+        const reasoningEngine = {
+            // 上下文理解级别：basic, advanced, expert
+            contextUnderstandingLevel: 'advanced',
+            // 是否启用多轮推理
+            enableMultiTurnReasoning: true,
+            // 推理深度（1-5）
+            reasoningDepth: 3,
+            // 启用情感分析
+            enableSentimentAnalysis: true,
+            // 启用意图识别
+            enableIntentRecognition: true
+        };
+
+        // 对话上下文管理
+        let conversationContext = {
+            projectName: "3-6岁儿童健康零食开发",
+            completedSteps: ["需求分析", "市场调研"],
+            inProgressSteps: ["配方研发"],
+            keyInfo: {
+                targetAudience: "3-6岁儿童",
+                productType: "健康零食",
+                coreNeeds: ["营养均衡", "无添加剂", "趣味性"]
+            },
+            conversationHistory: [
+                {
+                    sender: "user",
+                    message: "我需要开发一款适合3-6岁儿童的健康零食",
+                    timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10分钟前
+                    // 新增：用户意图和情感分析
+                    intent: "需求提出",
+                    sentiment: "neutral"
+                },
+                {
+                    sender: "luna",
+                    message: "收到需求，我将协调团队进行评估和方案设计。我们的市场调研AI将首先分析当前儿童零食市场趋势。",
+                    timestamp: new Date(Date.now() - 10 * 60 * 1000), // 10分钟前
+                    // 新增：AI回复类型和相关任务
+                    responseType: "确认",
+                    relatedTasks: ["需求分析"]
+                },
+                {
+                    sender: "user",
+                    message: "我希望零食是营养均衡的，不添加人工色素和防腐剂",
+                    timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5分钟前
+                    // 新增：用户意图和情感分析
+                    intent: "需求细化",
+                    sentiment: "positive"
+                }
+            ],
+            // 新增：对话状态管理
+            conversationState: {
+                currentPhase: "需求确认",
+                activeAgents: ["luna", "market-research"],
+                pendingQuestions: [],
+                followUpActions: ["等待用户进一步需求", "准备市场调研结果"]
+            },
+            // 新增：推理历史记录
+            reasoningHistory: []
+        };
+
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化标签页切换
+            initTabSwitching();
+            
+            // 初始化Agent点击事件
+            initAgentClick();
+            
+            // 初始化模态框关闭事件
+            initModalClose();
+            
+            // 初始化联系Agent按钮
+            initContactAgent();
+            
+            // 初始化聊天功能
+            initChat();
+            
+            // 初始化上下文侧边栏
+            initContextSidebar();
+            
+            // 初始化快速问题按钮
+            initQuickQuestions();
+        });
+
+        // 初始化标签页切换
+        function initTabSwitching() {
+            const tabs = ['chat', 'agents', 'tasks'];
+            const tabButtons = tabs.map(tab => document.getElementById(`tab-${tab}`));
+            const tabPages = tabs.map(tab => document.getElementById(`page-${tab}`));
+            
+            tabButtons.forEach((button, index) => {
+                button.addEventListener('click', function() {
+                    // 移除所有标签页的活动状态
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('tab-active');
+                        btn.classList.add('text-gray-500');
+                    });
+                    
+                    // 隐藏所有页面
+                    tabPages.forEach(page => {
+                        page.classList.add('hidden');
+                    });
+                    
+                    // 激活当前标签页
+                    this.classList.add('tab-active');
+                    this.classList.remove('text-gray-500');
+                    
+                    // 显示对应页面
+                    tabPages[index].classList.remove('hidden');
+                });
+            });
+        }
+
+        // 初始化Agent点击事件
+        function initAgentClick() {
+            const agentNodes = document.querySelectorAll('.agent-node');
+            agentNodes.forEach(node => {
+                node.addEventListener('click', function() {
+                    const agentId = this.getAttribute('data-agent-id');
+                    if (agentId && agents[agentId]) {
+                        showAgentModal(agentId);
+                    }
+                });
+            });
+        }
+
+        // 显示Agent详情模态框
+        function showAgentModal(agentId) {
+            const agent = agents[agentId];
+            if (!agent) return;
+            
+            const modal = document.getElementById('agent-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalContent = document.getElementById('modal-content');
+            
+            // 设置标题
+            modalTitle.textContent = `${agent.name} - ${agent.role}`;
+            
+            // 设置内容
+            let capabilitiesHtml = '';
+            if (agent.capabilities && agent.capabilities.length > 0) {
+                capabilitiesHtml = `
+                    <div class="mt-4">
+                        <h4 class="font-medium text-gray-700 mb-2">核心能力</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-600">
+                            ${agent.capabilities.map(cap => `<li>${cap}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            modalContent.innerHTML = `
+                <div class="flex items-center">
+                    <img src="${agent.avatar}" alt="${agent.name}" class="w-16 h-16 rounded-full object-cover border-4 border-${agent.color}">
+                    <div class="ml-4">
+                        <h3 class="text-xl font-bold text-gray-800">${agent.name}</h3>
+                        <p class="text-sm text-gray-500">${agent.role}</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <h4 class="font-medium text-gray-700 mb-2">职责描述</h4>
+                    <p class="text-sm text-gray-600">${agent.description}</p>
+                </div>
+                ${capabilitiesHtml}
+            `;
+            
+            // 显示模态框
+            modal.classList.remove('hidden');
+            
+            // 设置联系按钮的Agent ID
+            const contactButton = document.getElementById('contact-agent');
+            contactButton.setAttribute('data-agent-id', agentId);
+        }
+
+        // 初始化模态框关闭事件
+        function initModalClose() {
+            const closeButton = document.getElementById('close-modal');
+            const modal = document.getElementById('agent-modal');
+            
+            closeButton.addEventListener('click', function() {
+                modal.classList.add('hidden');
+            });
+            
+            // 点击模态框外部关闭
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.add('hidden');
+                }
+            });
+        }
+
+        // 初始化联系Agent按钮
+        function initContactAgent() {
+            const contactButton = document.getElementById('contact-agent');
+            
+            contactButton.addEventListener('click', function() {
+                const agentId = this.getAttribute('data-agent-id');
+                if (agentId && agents[agentId]) {
+                    // 关闭模态框
+                    document.getElementById('agent-modal').classList.add('hidden');
+                    
+                    // 切换到聊天标签页
+                    document.getElementById('tab-chat').click();
+                    
+                    // 聚焦到聊天输入框
+                    document.getElementById('message-input').focus();
+                    
+                    // 可以在这里添加预设消息或其他逻辑
+                }
+            });
+        }
+
+        // 初始化上下文侧边栏
+        function initContextSidebar() {
+            const contextButton = document.getElementById('context-button');
+            const closeContext = document.getElementById('close-context');
+            const contextSidebar = document.getElementById('context-sidebar');
+            const clearContext = document.getElementById('clear-context');
+            
+            contextButton.addEventListener('click', function() {
+                contextSidebar.classList.remove('translate-x-full');
+            });
+            
+            closeContext.addEventListener('click', function() {
+                contextSidebar.classList.add('translate-x-full');
+            });
+            
+            clearContext.addEventListener('click', function() {
+                if (confirm('确定要清除当前对话上下文吗？')) {
+                    // 这里可以添加清除上下文的逻辑
+                    alert('上下文已清除');
+                    contextSidebar.classList.add('translate-x-full');
+                }
+            });
+        }
+
+        // 初始化快速问题按钮
+        function initQuickQuestions() {
+            const quickQuestions = [
+                document.getElementById('quick-question-1'),
+                document.getElementById('quick-question-2')
+            ];
+            
+            quickQuestions.forEach(button => {
+                button.addEventListener('click', function() {
+                    const messageInput = document.getElementById('message-input');
+                    messageInput.value = this.textContent;
+                    messageInput.focus();
+                    
+                    // 可以直接发送消息
+                    // sendMessage();
+                });
+            });
+        }
+
+        // 初始化聊天功能
+        function initChat() {
+            const messageInput = document.getElementById('message-input');
+            const sendButton = document.getElementById('send-button');
+            const chatMessages = document.getElementById('chat-messages');
+            
+            // 发送消息函数
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                if (!message) return;
+                
+                // 添加用户消息
+                addUserMessage(message);
+                
+                // 保存到对话历史
+                saveToConversationHistory('user', message);
+                
+                // 清空输入框
+                messageInput.value = '';
+                
+                // 显示AI正在输入
+                showTypingIndicator();
+                
+                // 调用阿里云API获取回复
+                callAliCloudAPI(message)
+                    .then(response => {
+                        // 移除输入指示器
+                        removeTypingIndicator();
+                        
+                        // 添加AI回复
+                        addAIResponse(response);
+                        
+                        // 保存到对话历史
+                        saveToConversationHistory('ai', response);
+                        
+                        // 滚动到底部
+                        scrollToBottom();
+                    })
+                    .catch(error => {
+                        console.error('API调用失败:', error);
+                        
+                        // 移除输入指示器
+                        removeTypingIndicator();
+                        
+                        // 添加错误消息
+                        addErrorMessage('抱歉，我暂时无法回复您的消息。请稍后再试。');
+                        
+                        // 滚动到底部
+                        scrollToBottom();
+                    });
+            }
+            
+            // 添加用户消息
+            function addUserMessage(message) {
+                const userMessageHtml = `
+                    <div class="flex mb-4 justify-end">
+                        <div class="mr-2">
+                            <div class="message-bubble user bg-gray-100 p-3 mt-1">
+                                <p class="text-gray-700 text-sm">${message}</p>
+                            </div>
+                        </div>
+                        <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
+                            <i class="fa fa-user text-gray-600"></i>
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.insertAdjacentHTML('beforeend', userMessageHtml);
+                scrollToBottom();
+            }
+            
+            // 显示AI正在输入指示器
+            function showTypingIndicator() {
+                const typingHtml = `
+                    <div class="flex mb-4" id="typing-indicator">
+                        <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/a526161dc3a44703be086d833b7079d0~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=202602250948406EBDA8B4071CB7748628&rrcfp=f06b921b&x-expires=1774576173&x-signature=7DqXvLEzPGC9u5LCSArcHAgAcRU%3D" alt="Luna" class="w-8 h-8 rounded-full object-cover">
+                        <div class="ml-2">
+                            <div class="flex items-center">
+                                <span class="font-medium text-gray-800 text-sm">Luna</span>
+                                <span class="text-xs text-gray-500 ml-2">中枢首席执行官</span>
+                            </div>
+                            <div class="bg-blue-50 p-3 rounded-lg mt-1">
+                                <div class="typing-indicator">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.insertAdjacentHTML('beforeend', typingHtml);
+                scrollToBottom();
+            }
+            
+            // 移除输入指示器
+            function removeTypingIndicator() {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+            
+            // 添加AI回复
+            function addAIResponse(responseData) {
+                // 从响应数据中提取回复内容和Agent信息
+                const response = typeof responseData === 'string' ? responseData : responseData.response;
+                let agent = agents["luna"]; // 默认使用Luna回复
+                
+                // 如果响应数据包含Agent信息，则使用指定的Agent
+                if (typeof responseData === 'object' && responseData.agent) {
+                    const agentId = Object.keys(agents).find(key => agents[key].name === responseData.agent);
+                    if (agentId) {
+                        agent = agents[agentId];
+                    }
+                } else {
+                    // 否则根据用户消息内容选择合适的Agent回复
+                    const lastUserMessage = conversationContext.conversationHistory[conversationContext.conversationHistory.length - 1].message.toLowerCase();
+                    
+                    if (lastUserMessage.includes("配方") || lastUserMessage.includes("成分") || lastUserMessage.includes("营养")) {
+                        agent = agents["recipe-dev"];
+                    } else if (lastUserMessage.includes("口感") || lastUserMessage.includes("味道") || lastUserMessage.includes("风味")) {
+                        agent = agents["taste-test"];
+                    } else if (lastUserMessage.includes("包装") || lastUserMessage.includes("设计") || lastUserMessage.includes("外观")) {
+                        agent = agents["packaging-design"];
+                    } else if (lastUserMessage.includes("市场") || lastUserMessage.includes("趋势") || lastUserMessage.includes("竞品")) {
+                        agent = agents["market-research"];
+                    } else if (lastUserMessage.includes("品牌") || lastUserMessage.includes("定位") || lastUserMessage.includes("策略")) {
+                        agent = agents["brand-strategy"];
+                    } else if (lastUserMessage.includes("推广") || lastUserMessage.includes("渠道") || lastUserMessage.includes("销售")) {
+                        agent = agents["channel-promotion"];
+                    } else if (lastUserMessage.includes("安全") || lastUserMessage.includes("法规") || lastUserMessage.includes("标准")) {
+                        agent = agents["food-safety"];
+                    } else if (lastUserMessage.includes("标签") || lastUserMessage.includes("说明") || lastUserMessage.includes("标注")) {
+                        agent = agents["label-compliance"];
+                    } else if (lastUserMessage.includes("质量") || lastUserMessage.includes("检测") || lastUserMessage.includes("控制")) {
+                        agent = agents["quality-control"];
+                    }
+                }
+                
+                // 创建回复HTML，包含推理过程展示按钮
+                const aiMessageHtml = `
+                    <div class="flex mb-4">
+                        <img src="${agent.avatar}" alt="${agent.name}" class="w-8 h-8 rounded-full object-cover">
+                        <div class="ml-2 flex-1">
+                            <div class="flex items-center">
+                                <span class="font-medium text-gray-800 text-sm">${agent.name}</span>
+                                <span class="text-xs text-gray-500 ml-2">${agent.role}</span>
+                                <button class="ml-auto text-xs text-primary flex items-center reasoning-toggle" data-message-id="${Date.now()}">
+                                    <i class="fa fa-lightbulb-o mr-1"></i> 查看推理
+                                </button>
+                            </div>
+                            <div class="message-bubble ai bg-blue-50 p-3 mt-1">
+                                <p class="text-gray-700 text-sm">${response}</p>
+                            </div>
+                            <!-- 推理过程展示区域，默认隐藏 -->
+                            <div class="reasoning-content hidden mt-2 p-3 bg-gray-50 rounded-lg text-xs">
+                                <div class="font-medium text-gray-700 mb-1">推理过程：</div>
+                                <div class="reasoning-analysis mb-1">
+                                    <span class="font-medium">分析：</span>
+                                    <span id="reasoning-analysis-${Date.now()}">正在加载...</span>
+                                </div>
+                                <div class="reasoning-conclusions mb-1">
+                                    <span class="font-medium">结论：</span>
+                                    <span id="reasoning-conclusions-${Date.now()}">正在加载...</span>
+                                </div>
+                                <div class="reasoning-recommendations">
+                                    <span class="font-medium">建议：</span>
+                                    <span id="reasoning-recommendations-${Date.now()}">正在加载...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.insertAdjacentHTML('beforeend', aiMessageHtml);
+                
+                // 添加推理过程展示按钮的点击事件
+                setTimeout(() => {
+                    const toggleButton = document.querySelector(`.reasoning-toggle[data-message-id="${Date.now()}"]`);
+                    if (toggleButton) {
+                        toggleButton.addEventListener('click', function() {
+                            const content = this.closest('div.flex.mb-4').querySelector('.reasoning-content');
+                            content.classList.toggle('hidden');
+                            
+                            // 如果是第一次展开，加载推理内容
+                            if (!content.classList.contains('loaded')) {
+                                loadReasoningContent(Date.now());
+                                content.classList.add('loaded');
+                            }
+                        });
+                    }
+                }, 100);
+            }
+            
+            // 加载推理过程内容
+            function loadReasoningContent(messageId) {
+                // 获取最近的推理历史
+                const recentReasoning = conversationContext.reasoningHistory[conversationContext.reasoningHistory.length - 1];
+                
+                if (recentReasoning) {
+                    // 更新推理分析内容
+                    const analysisElement = document.getElementById(`reasoning-analysis-${messageId}`);
+                    if (analysisElement && recentReasoning.reasoning.analysis) {
+                        analysisElement.textContent = recentReasoning.reasoning.analysis.join('；');
+                    }
+                    
+                    // 更新推理结论内容
+                    const conclusionsElement = document.getElementById(`reasoning-conclusions-${messageId}`);
+                    if (conclusionsElement && recentReasoning.reasoning.conclusions) {
+                        conclusionsElement.textContent = recentReasoning.reasoning.conclusions.join('；');
+                    }
+                    
+                    // 更新推理建议内容
+                    const recommendationsElement = document.getElementById(`reasoning-recommendations-${messageId}`);
+                    if (recommendationsElement && recentReasoning.reasoning.recommendations) {
+                        recommendationsElement.textContent = recentReasoning.reasoning.recommendations.join('；');
+                    }
+                } else {
+                    // 如果没有推理历史，显示默认内容
+                    const elements = [
+                        `reasoning-analysis-${messageId}`,
+                        `reasoning-conclusions-${messageId}`,
+                        `reasoning-recommendations-${messageId}`
+                    ];
+                    
+                    elements.forEach(id => {
+                        const element = document.getElementById(id);
+                        if (element) {
+                            element.textContent = '暂无推理数据';
+                        }
+                    });
+                }
+            }
+            
+            // 添加错误消息
+            function addErrorMessage(message) {
+                const errorMessageHtml = `
+                    <div class="flex mb-4 justify-center">
+                        <div class="bg-red-50 p-3 rounded-lg">
+                            <p class="text-red-700 text-sm">${message}</p>
+                        </div>
+                    </div>
+                `;
+                
+                chatMessages.insertAdjacentHTML('beforeend', errorMessageHtml);
+            }
+            
+            // 保存到对话历史
+            function saveToConversationHistory(sender, message, additionalData = {}) {
+                const historyItem = {
+                    sender: sender,
+                    message: message,
+                    timestamp: new Date(),
+                    ...additionalData
+                };
+                
+                // 如果是用户消息，添加意图和情感分析
+                if (sender === 'user') {
+                    historyItem.intent = analyzeUserIntent(message);
+                    historyItem.sentiment = analyzeUserSentiment(message);
+                }
+                
+                // 如果是AI消息，添加回复类型和相关任务
+                if (sender === 'ai') {
+                    historyItem.responseType = determineResponseType(message);
+                    historyItem.relatedTasks = determineRelatedTasks(message);
+                }
+                
+                conversationContext.conversationHistory.push(historyItem);
+                
+                // 限制历史记录长度
+                if (conversationContext.conversationHistory.length > 50) {
+                    conversationContext.conversationHistory.shift();
+                }
+                
+                // 更新上下文侧边栏
+                updateContextSidebar();
+            }
+            
+            // 确定AI回复类型
+            function determineResponseType(message) {
+                const lowerMessage = message.toLowerCase();
+                
+                if (lowerMessage.includes("建议") || lowerMessage.includes("推荐")) {
+                    return "建议";
+                } else if (lowerMessage.includes("确认") || lowerMessage.includes("了解")) {
+                    return "确认";
+                } else if (lowerMessage.includes("抱歉") || lowerMessage.includes("问题")) {
+                    return "道歉";
+                } else if (lowerMessage.includes("感谢") || lowerMessage.includes("谢谢")) {
+                    return "感谢";
+                } else if (lowerMessage.includes("进度") || lowerMessage.includes("进展")) {
+                    return "进度汇报";
+                }
+                
+                return "信息提供";
+            }
+            
+            // 确定相关任务
+            function determineRelatedTasks(message) {
+                const tasks = [];
+                const lowerMessage = message.toLowerCase();
+                
+                const taskKeywords = {
+                    "需求分析": ["需求", "分析", "需要", "希望"],
+                    "市场调研": ["市场", "调研", "趋势", "竞品", "消费者"],
+                    "配方研发": ["配方", "研发", "成分", "营养", "原料"],
+                    "包装设计": ["包装", "设计", "外观", "形状"],
+                    "合规检查": ["合规", "检查", "安全", "法规", "标准"]
+                };
+                
+                for (const [task, keywords] of Object.entries(taskKeywords)) {
+                    for (const keyword of keywords) {
+                        if (lowerMessage.includes(keyword)) {
+                            tasks.push(task);
+                            break;
+                        }
+                    }
+                }
+                
+                return tasks;
+            }
+            
+            // 更新上下文侧边栏
+            function updateContextSidebar() {
+                const contextContent = document.getElementById('context-content');
+                
+                // 生成对话历史HTML
+                let historyHtml = '';
+                conversationContext.conversationHistory.slice(-5).forEach((item, index) => {
+                    const isUser = item.sender === 'user';
+                    const bgColor = isUser ? 'bg-gray-50' : 'bg-blue-50';
+                    const senderName = isUser ? '用户' : 'AI';
+                    const timeString = formatTime(item.timestamp);
+                    
+                    historyHtml += `
+                        <div class="${bgColor} p-3 rounded-lg">
+                            <p class="text-xs text-gray-500 mb-1">${senderName} · ${timeString}</p>
+                            <p class="text-gray-800">${item.message}</p>
+                        </div>
+                    `;
+                    
+                    if (index < conversationContext.conversationHistory.slice(-5).length - 1) {
+                        historyHtml += '<div class="h-2"></div>';
+                    }
+                });
+                
+                // 更新上下文侧边栏内容
+                contextContent.innerHTML = `
+                    <div class="text-sm text-gray-600">
+                        <p class="mb-2 font-medium">当前项目：</p>
+                        <p class="mb-4 text-gray-800">${conversationContext.projectName}</p>
+                        
+                        <p class="mb-2 font-medium">已完成步骤：</p>
+                        <ul class="list-disc list-inside mb-4 text-gray-800">
+                            ${conversationContext.completedSteps.map(step => `<li>${step}</li>`).join('')}
+                        </ul>
+                        
+                        <p class="mb-2 font-medium">进行中步骤：</p>
+                        <ul class="list-disc list-inside mb-4 text-gray-800">
+                            ${conversationContext.inProgressSteps.map(step => `<li>${step}</li>`).join('')}
+                        </ul>
+                        
+                        <p class="mb-2 font-medium">关键信息：</p>
+                        <div class="bg-gray-50 p-3 rounded-lg mb-4">
+                            <p class="text-gray-800">目标人群：${conversationContext.keyInfo.targetAudience}</p>
+                            <p class="text-gray-800">产品类型：${conversationContext.keyInfo.productType}</p>
+                            <p class="text-gray-800">核心需求：${conversationContext.keyInfo.coreNeeds.join('、')}</p>
+                        </div>
+                        
+                        <p class="mb-2 font-medium">最近对话：</p>
+                        <div class="space-y-2">
+                            ${historyHtml}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 格式化时间
+            function formatTime(date) {
+                const now = new Date();
+                const diff = now - date;
+                
+                // 小于1分钟
+                if (diff < 60 * 1000) {
+                    return '刚刚';
+                }
+                // 小于1小时
+                else if (diff < 60 * 60 * 1000) {
+                    return `${Math.floor(diff / (60 * 1000))}分钟前`;
+                }
+                // 小于24小时
+                else if (diff < 24 * 60 * 60 * 1000) {
+                    return `${Math.floor(diff / (60 * 60 * 1000))}小时前`;
+                }
+                // 大于24小时
+                else {
+                    return `${Math.floor(diff / (24 * 60 * 60 * 1000))}天前`;
+                }
+            }
+            
+            // 增强的对话推理引擎
+            function enhanceReasoningEngine(message) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        // 1. 分析用户意图
+                        const userIntent = analyzeUserIntent(message);
+                        
+                        // 2. 分析用户情感
+                        const userSentiment = analyzeUserSentiment(message);
+                        
+                        // 3. 进行上下文理解
+                        const contextUnderstanding = understandContext(message);
+                        
+                        // 4. 生成推理过程
+                        const reasoningProcess = generateReasoning(userIntent, userSentiment, contextUnderstanding);
+                        
+                        // 5. 选择合适的Agent回复
+                        const selectedAgent = selectAppropriateAgent(userIntent, contextUnderstanding);
+                        
+                        // 6. 生成回复内容
+                        const response = generateResponse(selectedAgent, reasoningProcess, contextUnderstanding);
+                        
+                        // 7. 记录推理历史
+                        recordReasoningHistory(message, userIntent, userSentiment, reasoningProcess, selectedAgent);
+                        
+                        // 8. 更新对话状态
+                        updateConversationState(userIntent, selectedAgent);
+                        
+                        // 返回增强的回复
+                        resolve({
+                            response: response,
+                            agent: selectedAgent,
+                            reasoning: reasoningProcess
+                        });
+                    } catch (error) {
+                        console.error('推理引擎错误:', error);
+                        reject(error);
+                    }
+                });
+            }
+            
+            // 分析用户意图
+            function analyzeUserIntent(message) {
+                const lowerMessage = message.toLowerCase();
+                
+                // 意图分类
+                if (lowerMessage.includes("需求") || lowerMessage.includes("想要") || lowerMessage.includes("希望")) {
+                    return "需求表达";
+                } else if (lowerMessage.includes("问题") || lowerMessage.includes("疑问") || lowerMessage.includes("？") || lowerMessage.includes("?")) {
+                    return "提问";
+                } else if (lowerMessage.includes("谢谢") || lowerMessage.includes("感谢")) {
+                    return "感谢";
+                } else if (lowerMessage.includes("确认") || lowerMessage.includes("对吗") || lowerMessage.includes("是不是")) {
+                    return "确认";
+                } else if (lowerMessage.includes("修改") || lowerMessage.includes("调整") || lowerMessage.includes("变更")) {
+                    return "修改需求";
+                } else if (lowerMessage.includes("进度") || lowerMessage.includes("进展") || lowerMessage.includes("多久")) {
+                    return "询问进度";
+                }
+                
+                // 领域分类
+                if (lowerMessage.includes("配方") || lowerMessage.includes("成分") || lowerMessage.includes("营养")) {
+                    return "配方咨询";
+                } else if (lowerMessage.includes("市场") || lowerMessage.includes("趋势") || lowerMessage.includes("竞品")) {
+                    return "市场咨询";
+                } else if (lowerMessage.includes("包装") || lowerMessage.includes("设计") || lowerMessage.includes("外观")) {
+                    return "包装咨询";
+                } else if (lowerMessage.includes("安全") || lowerMessage.includes("法规") || lowerMessage.includes("标准")) {
+                    return "合规咨询";
+                } else if (lowerMessage.includes("品牌") || lowerMessage.includes("定位") || lowerMessage.includes("策略")) {
+                    return "品牌咨询";
+                } else if (lowerMessage.includes("推广") || lowerMessage.includes("渠道") || lowerMessage.includes("销售")) {
+                    return "推广咨询";
+                }
+                
+                return "一般交流";
+            }
+            
+            // 分析用户情感
+            function analyzeUserSentiment(message) {
+                const lowerMessage = message.toLowerCase();
+                
+                // 积极情感词汇
+                const positiveWords = ["喜欢", "好", "棒", "赞", "满意", "感谢", "谢谢", "高兴", "期待"];
+                
+                // 消极情感词汇
+                const negativeWords = ["不满", "失望", "不好", "差", "糟糕", "问题", "错误", "麻烦", "担心"];
+                
+                // 中性情感词汇
+                const neutralWords = ["询问", "咨询", "了解", "想知道", "确认", "核实"];
+                
+                // 检测情感
+                for (const word of positiveWords) {
+                    if (lowerMessage.includes(word)) {
+                        return "positive";
+                    }
+                }
+                
+                for (const word of negativeWords) {
+                    if (lowerMessage.includes(word)) {
+                        return "negative";
+                    }
+                }
+                
+                for (const word of neutralWords) {
+                    if (lowerMessage.includes(word)) {
+                        return "neutral";
+                    }
+                }
+                
+                // 默认中性
+                return "neutral";
+            }
+            
+            // 上下文理解
+            function understandContext(message) {
+                const context = {
+                    relatedHistory: [],
+                    keyInformation: [],
+                    currentTask: null,
+                    nextSteps: []
+                };
+                
+                // 1. 查找相关历史对话
+                const recentHistory = conversationContext.conversationHistory.slice(-5);
+                for (const item of recentHistory) {
+                    if (hasTopicOverlap(message, item.message)) {
+                        context.relatedHistory.push(item);
+                    }
+                }
+                
+                // 2. 提取关键信息
+                const keyInfo = extractKeyInformation(message);
+                context.keyInformation = keyInfo;
+                
+                // 3. 确定当前任务
+                context.currentTask = determineCurrentTask(message);
+                
+                // 4. 推荐下一步
+                context.nextSteps = recommendNextSteps(context.currentTask, keyInfo);
+                
+                return context;
+            }
+            
+            // 检测话题重叠
+            function hasTopicOverlap(message1, message2) {
+                const lower1 = message1.toLowerCase();
+                const lower2 = message2.toLowerCase();
+                
+                // 关键词列表
+                const keywords = [
+                    "配方", "营养", "市场", "包装", "设计", "安全", "法规", "品牌", "推广", "渠道", "销售", "口感", "味道"
+                ];
+                
+                for (const keyword of keywords) {
+                    if (lower1.includes(keyword) && lower2.includes(keyword)) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+            
+            // 提取关键信息
+            function extractKeyInformation(message) {
+                const keyInfo = [];
+                const lowerMessage = message.toLowerCase();
+                
+                // 提取数字信息（如年龄、数量等）
+                const numbers = lowerMessage.match(/\d+/g);
+                if (numbers) {
+                    keyInfo.push(...numbers);
+                }
+                
+                // 提取产品类型
+                const productTypes = ["饼干", "薯片", "糖果", "巧克力", "果泥", "果汁", "坚果", "酸奶", "奶酪", "谷物"];
+                for (const type of productTypes) {
+                    if (lowerMessage.includes(type)) {
+                        keyInfo.push(type);
+                    }
+                }
+                
+                // 提取特殊要求
+                const requirements = ["无添加", "有机", "天然", "低糖", "低盐", "高蛋白", "高纤维", "无麸质", "无乳糖"];
+                for (const req of requirements) {
+                    if (lowerMessage.includes(req)) {
+                        keyInfo.push(req);
+                    }
+                }
+                
+                return keyInfo;
+            }
+            
+            // 确定当前任务
+            function determineCurrentTask(message) {
+                const lowerMessage = message.toLowerCase();
+                
+                // 检查是否与当前进行中的任务相关
+                for (const task of conversationContext.inProgressSteps) {
+                    if (hasTaskKeywordOverlap(lowerMessage, task)) {
+                        return task;
+                    }
+                }
+                
+                // 检查是否与已完成的任务相关
+                for (const task of conversationContext.completedSteps) {
+                    if (hasTaskKeywordOverlap(lowerMessage, task)) {
+                        return task;
+                    }
+                }
+                
+                return null;
+            }
+            
+            // 任务关键词重叠检测
+            function hasTaskKeywordOverlap(message, task) {
+                const taskKeywords = {
+                    "需求分析": ["需求", "分析", "需要", "希望"],
+                    "市场调研": ["市场", "调研", "趋势", "竞品", "消费者"],
+                    "配方研发": ["配方", "研发", "成分", "营养", "原料"],
+                    "包装设计": ["包装", "设计", "外观", "形状"],
+                    "合规检查": ["合规", "检查", "安全", "法规", "标准"]
+                };
+                
+                const keywords = taskKeywords[task] || [];
+                for (const keyword of keywords) {
+                    if (message.includes(keyword)) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+            
+            // 推荐下一步
+            function recommendNextSteps(currentTask, keyInfo) {
+                const nextSteps = [];
+                
+                // 基于当前任务推荐下一步
+                if (currentTask === "需求分析") {
+                    nextSteps.push("进入市场调研阶段");
+                    nextSteps.push("细化产品需求");
+                } else if (currentTask === "市场调研") {
+                    nextSteps.push("开始配方研发");
+                    nextSteps.push("确定目标市场定位");
+                } else if (currentTask === "配方研发") {
+                    nextSteps.push("进行包装设计");
+                    nextSteps.push("开展口感测试");
+                } else if (currentTask === "包装设计") {
+                    nextSteps.push("进行合规检查");
+                    nextSteps.push("准备生产计划");
+                } else if (currentTask === "合规检查") {
+                    nextSteps.push("完成产品开发");
+                    nextSteps.push("制定上市策略");
+                }
+                
+                // 基于关键信息推荐下一步
+                if (keyInfo.includes("无添加") || keyInfo.includes("有机")) {
+                    nextSteps.push("确认原料供应链");
+                }
+                
+                if (keyInfo.includes("低糖") || keyInfo.includes("低盐")) {
+                    nextSteps.push("进行营养成分分析");
+                }
+                
+                return nextSteps;
+            }
+            
+            // 生成推理过程
+            function generateReasoning(userIntent, userSentiment, contextUnderstanding) {
+                const reasoning = {
+                    analysis: [],
+                    conclusions: [],
+                    recommendations: []
+                };
+                
+                // 分析部分
+                reasoning.analysis.push(`用户意图: ${userIntent}`);
+                reasoning.analysis.push(`用户情感: ${userSentiment}`);
+                
+                if (contextUnderstanding.currentTask) {
+                    reasoning.analysis.push(`当前任务: ${contextUnderstanding.currentTask}`);
+                }
+                
+                if (contextUnderstanding.keyInformation.length > 0) {
+                    reasoning.analysis.push(`关键信息: ${contextUnderstanding.keyInformation.join(', ')}`);
+                }
+                
+                // 结论部分
+                if (userSentiment === "positive") {
+                    reasoning.conclusions.push("用户对当前进展表示满意");
+                } else if (userSentiment === "negative") {
+                    reasoning.conclusions.push("用户可能对某些方面存在顾虑");
+                }
+                
+                if (contextUnderstanding.relatedHistory.length > 0) {
+                    reasoning.conclusions.push("用户在继续之前的话题讨论");
+                } else {
+                    reasoning.conclusions.push("用户开启了新的话题");
+                }
+                
+                // 建议部分
+                reasoning.recommendations = contextUnderstanding.nextSteps;
+                
+                return reasoning;
+            }
+            
+            // 选择合适的Agent
+            function selectAppropriateAgent(userIntent, contextUnderstanding) {
+                // 默认使用Luna
+                let selectedAgent = agents["luna"];
+                
+                // 基于意图选择Agent
+                if (userIntent === "配方咨询") {
+                    selectedAgent = agents["recipe-dev"];
+                } else if (userIntent === "市场咨询") {
+                    selectedAgent = agents["market-research"];
+                } else if (userIntent === "包装咨询") {
+                    selectedAgent = agents["packaging-design"];
+                } else if (userIntent === "合规咨询") {
+                    selectedAgent = agents["food-safety"];
+                } else if (userIntent === "品牌咨询") {
+                    selectedAgent = agents["brand-strategy"];
+                } else if (userIntent === "推广咨询") {
+                    selectedAgent = agents["channel-promotion"];
+                }
+                
+                // 基于当前任务调整Agent
+                if (contextUnderstanding.currentTask === "配方研发") {
+                    selectedAgent = agents["recipe-dev"];
+                } else if (contextUnderstanding.currentTask === "市场调研") {
+                    selectedAgent = agents["market-research"];
+                } else if (contextUnderstanding.currentTask === "包装设计") {
+                    selectedAgent = agents["packaging-design"];
+                } else if (contextUnderstanding.currentTask === "合规检查") {
+                    selectedAgent = agents["kai"];
+                }
+                
+                return selectedAgent;
+            }
+            
+            // 生成回复内容
+            function generateResponse(selectedAgent, reasoningProcess, contextUnderstanding) {
+                // 基于推理过程生成回复
+                let response = "";
+                
+                // 开头语
+                if (reasoningProcess.conclusions.includes("用户在继续之前的话题讨论")) {
+                    response += "感谢您的进一步咨询。";
+                } else {
+                    response += `您好，我是${selectedAgent.name}，${selectedAgent.role}。`;
+                }
+                
+                // 主体内容
+                if (reasoningProcess.recommendations.length > 0) {
+                    response += " 根据我们的分析，建议您考虑以下几点：";
+                    reasoningProcess.recommendations.forEach((rec, index) => {
+                        response += ` ${index + 1}. ${rec}；`;
+                    });
+                }
+                
+                // 结束语
+                response += " 您对这个方向有什么想法或其他问题吗？";
+                
+                return response;
+            }
+            
+            // 记录推理历史
+            function recordReasoningHistory(message, userIntent, userSentiment, reasoningProcess, selectedAgent) {
+                conversationContext.reasoningHistory.push({
+                    timestamp: new Date(),
+                    userMessage: message,
+                    userIntent: userIntent,
+                    userSentiment: userSentiment,
+                    reasoning: reasoningProcess,
+                    selectedAgent: selectedAgent.id || selectedAgent.name
+                });
+                
+                // 限制推理历史长度
+                if (conversationContext.reasoningHistory.length > 20) {
+                    conversationContext.reasoningHistory.shift();
+                }
+            }
+            
+            // 更新对话状态
+            function updateConversationState(userIntent, selectedAgent) {
+                // 更新活跃Agent
+                const agentId = selectedAgent.id || Object.keys(agents).find(key => agents[key].name === selectedAgent.name);
+                if (agentId && !conversationContext.conversationState.activeAgents.includes(agentId)) {
+                    conversationContext.conversationState.activeAgents.push(agentId);
+                }
+                
+                // 更新对话阶段
+                if (userIntent === "需求表达" || userIntent === "需求细化") {
+                    conversationContext.conversationState.currentPhase = "需求确认";
+                } else if (userIntent === "配方咨询" || userIntent === "市场咨询") {
+                    conversationContext.conversationState.currentPhase = "方案设计";
+                } else if (userIntent === "询问进度") {
+                    conversationContext.conversationState.currentPhase = "进度汇报";
+                }
+            }
+            
+            // 调用阿里云API
+            function callAliCloudAPI(message) {
+                return new Promise((resolve, reject) => {
+                    // 首先使用增强的推理引擎处理消息
+                    enhanceReasoningEngine(message)
+                        .then(reasoningResult => {
+                            // 构建完整的API请求参数
+                            const requestParams = {
+                                message: message,
+                                context: conversationContext,
+                                reasoning: reasoningResult.reasoning,
+                                selectedAgent: reasoningResult.agent.name,
+                                timestamp: new Date().toISOString()
+                            };
+                            
+                            console.log('调用阿里云API:', requestParams);
+                            
+                            // 实际API调用逻辑
+                            performApiCall(requestParams)
+                                .then(apiResponse => {
+                                    // 处理API响应
+                                    if (apiResponse && apiResponse.success) {
+                                        resolve(apiResponse.data.response);
+                                    } else {
+                                        // API调用失败时使用本地推理结果
+                                        console.warn('API调用失败，使用本地推理结果');
+                                        resolve(reasoningResult.response);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('API调用错误:', error);
+                                    // 错误时使用本地推理结果
+                                    resolve(reasoningResult.response);
+                                });
+                        })
+                        .catch(error => {
+                            console.error('推理引擎错误:', error);
+                            reject(error);
+                        });
+                });
+            }
+            
+            // 执行实际的API调用
+            function performApiCall(requestParams) {
+                return new Promise((resolve, reject) => {
+                    // 检查API配置是否完整
+                    if (!aliCloudConfig.endpoint || !aliCloudConfig.apiKey || !aliCloudConfig.apiSecret) {
+                        console.warn('API配置不完整，使用模拟响应');
+                        return resolve(getMockApiResponse(requestParams));
+                    }
+                    
+                    // 设置请求超时
+                    const timeoutId = setTimeout(() => {
+                        reject(new Error('API调用超时'));
+                    }, aliCloudConfig.timeout);
+                    
+                    try {
+                        // 构建请求头
+                        const headers = {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${aliCloudConfig.apiKey}`,
+                            'X-Signature': generateSignature(requestParams, aliCloudConfig.apiSecret),
+                            'X-Timestamp': new Date().toISOString(),
+                            'X-Version': aliCloudConfig.apiVersion
+                        };
+                        
+                        // 发送请求
+                        fetch(aliCloudConfig.endpoint, {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(requestParams)
+                        })
+                        .then(response => {
+                            clearTimeout(timeoutId);
+                            
+                            if (!response.ok) {
+                                throw new Error(`API请求失败: ${response.status}`);
+                            }
+                            
+                            return response.json();
+                        })
+                        .then(data => {
+                            resolve(data);
+                        })
+                        .catch(error => {
+                            clearTimeout(timeoutId);
+                            reject(error);
+                        });
+                    } catch (error) {
+                        clearTimeout(timeoutId);
+                        reject(error);
+                    }
+                });
+            }
+            
+            // 生成API签名
+            function generateSignature(params, secret) {
+                // 在实际应用中，这里应该使用HMAC-SHA256等算法生成签名
+                // 这里为了演示，返回一个简单的模拟签名
+                const data = JSON.stringify(params);
+                return btoa(`${data}|${secret}|${new Date().getTime()}`);
+            }
+            
+            // 获取模拟的API响应
+            function getMockApiResponse(requestParams) {
+                // 根据用户消息和推理结果生成模拟响应
+                const message = requestParams.message.toLowerCase();
+                let response = "";
+                
+                if (message.includes("配方") || message.includes("成分") || message.includes("营养")) {
+                    response = "根据您的需求和我们的分析，我们建议开发一款以水果、坚果和全谷物为主要成分的健康零食。这款零食将富含维生素、矿物质和膳食纤维，同时不含人工色素和防腐剂。我们的配方研发团队可以提供详细的营养成分分析和配方比例。考虑到您提到的无添加要求，我们会特别关注原料的天然性和安全性。";
+                } else if (message.includes("市场") || message.includes("趋势") || message.includes("竞品")) {
+                    response = "根据最新市场调研数据，健康、天然、无添加的儿童零食正成为市场热点，年增长率达到15%。消费者越来越关注产品的营养价值和原料来源，尤其是3-6岁儿童的家长群体。目前市场上的主要竞品包括有机水果干、全麦饼干和天然果泥等。我们建议在产品中强调健康、营养和安全性，并通过可爱的包装设计吸引儿童注意。下一步可以考虑确定具体的产品定位和目标市场细分。";
+                } else if (message.includes("包装") || message.includes("设计")) {
+                    response = "我们的包装设计团队建议采用明亮、活泼的色彩和可爱的卡通形象，以吸引3-6岁儿童的注意力。同时，包装应考虑安全性，避免使用尖锐的边角，并采用环保材料。我们可以设计可重复使用的包装，增加产品的环保属性和附加值。基于您的需求，我们推荐使用可降解材料，并在包装上突出显示产品的营养成分和无添加特点。";
+                } else if (message.includes("安全") || message.includes("法规") || message.includes("标准")) {
+                    response = "作为合规质量总监，我可以确认您的产品需要符合GB 2760食品安全国家标准和GB 7718预包装食品标签通则等法规要求。对于3-6岁儿童零食，我们需要特别关注以下几点：1) 确保所有原料符合食品安全标准；2) 产品标签必须清晰标注营养成分、生产日期和保质期；3) 包装材料必须符合食品接触材料标准；4) 避免使用可能对儿童造成窒息风险的小零件。我们的合规团队可以提供详细的合规检查清单。";
+                } else if (message.includes("进度") || message.includes("进展")) {
+                    response = "目前项目进展顺利。我们已完成需求分析和市场调研阶段，正在进行配方研发工作。配方研发预计将在3天内完成，之后我们将进入包装设计阶段。整个项目预计将在2周内完成。您对当前的进度安排有什么意见或建议吗？";
+                } else {
+                    response = "感谢您的咨询。基于我们的分析和推理，我们建议您考虑以下几点：1. 进一步明确产品的具体类型和定位；2. 确定目标销售渠道和价格区间；3. 考虑产品的差异化竞争优势。这些信息将帮助我们为您提供更精准的解决方案。您对这个方向有什么想法或其他问题吗？";
+                }
+                
+                return {
+                    success: true,
+                    data: {
+                        response: response,
+                        reasoning: requestParams.reasoning,
+                        agent: requestParams.selectedAgent,
+                        timestamp: new Date().toISOString()
+                    }
+                };
+            }
+            
+            // 滚动到底部
+            function scrollToBottom() {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // 发送按钮点击事件
+            sendButton.addEventListener('click', sendMessage);
+            
+            // 输入框回车事件
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // 初始化上下文侧边栏
+            updateContextSidebar();
+        }
+    </script>
+</body>
+</html>
