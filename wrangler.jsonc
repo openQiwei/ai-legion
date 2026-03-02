@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ai-legion",
+  "compatibility_date": "2025-09-27",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "ai-legion-interface"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
